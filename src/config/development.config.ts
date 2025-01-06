@@ -1,9 +1,7 @@
-import path, { join } from 'path';
+import { join } from 'path';
 import { IConfig } from './type';
 
 const config: IConfig = {
-  xlbServerUrl: 'https://test-api.xlbsoft.com',
-
   // 数据库配置
   database: {
     type: 'mysql',
@@ -12,9 +10,10 @@ const config: IConfig = {
     username: 'root',
     password: 'zengtao123',
     database: 'nest',
-    entities: [join(process.cwd(), '**', '*.entity.js')],
+    entities: [join(__dirname, '..', 'modules', '**', '**','*.entity.{ts,js}')],
     synchronize: true, // 在开发环境下可以使用，生产环境需要手动管理数据库结构变化
   },
 };
 
+console.log(66777,join(__dirname, '..', 'modules', '**', '**','*.entity.{ts,js}'))
 export default config;

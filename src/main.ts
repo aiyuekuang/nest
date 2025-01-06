@@ -4,15 +4,13 @@ import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { knife4jSetup } from "nest-knife4j";
 import { ValidationPipe } from "@nestjs/common";
 import { ResponseInterceptor } from "./interceptor/response.interceptor";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import config from "./config";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const options = new DocumentBuilder()
-    .setTitle("Cats example")
-    .setDescription("The cats API description")
-    .setVersion("1.0")
-    .addTag("cats")
     .build();
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup("api", app, document);
@@ -25,11 +23,9 @@ async function bootstrap() {
     }
   ]);
 
+
   // Apply global validation pipe
   app.useGlobalPipes(new ValidationPipe());
-
-  // Apply global response interceptor
-  app.useGlobalInterceptors(new ResponseInterceptor());
 
   await app.listen(3000);
 }

@@ -6,8 +6,9 @@ import { MailerService } from "@nestjs-modules/mailer";
 import { Cache, CACHE_MANAGER } from "@nestjs/cache-manager";
 import { LoginDto } from "../dto/req/login.dto";
 import { User } from "../../user/entities/user.entity";
-import { decrypt } from "../../../utils/common";
+import { decrypt, getAuthToken } from "../../../utils/common";
 import config from "../../../config";
+import { UpdateUserReqDto } from "../../user/dto/req/update-user-req.dto";
 
 @Injectable()
 export class AuthService {
@@ -48,35 +49,58 @@ export class AuthService {
     };
   }
 
-  async logout() {
+  async logout(req) {
+    let key = await getAuthToken(req, this.cache);
+    if (key) {
+      return await this.cache.del(key); // 返回用户信息
+    }
     // 处理用户登出逻辑
     // 这里可以实现 token 的黑名单机制
     return { message: "用户已登出" };
   }
 
-  async forgotPassword(email: string) {
-    // 生成重置密码的 token
-    const token = this.jwtService.sign({ email });
+  async forgotPassword(username: string) {
+    const user = await this.usersService.findByUsername(username);
+    // 获取一个6位随机验证码
+    let verificationCode = Math.random().toString().slice(-6);
+    // 将验证码存入缓存，有效期为 10 分钟
+    await this.cache.set(verificationCode, user, 1000 * 60 * 10);
+    let email = user.email;
 
     // 发送找回密码邮件
     await this.mailerService.sendMail({
       to: email,
       subject: "找回密码",
-      template: "./forgot-password", // 邮件模板
-      context: { token } // 模板上下文
+      html: "<!DOCTYPE html>\n" +
+        "<html>\n" +
+        "<head>\n" +
+        "  <title>验证码</title>\n" +
+        "</head>\n" +
+        "<body>\n" +
+        "  <p>您好，</p>\n" +
+        "  <p>您的验证码是：" + verificationCode + "</p>\n" +
+        "  <p>请在10分钟内使用此验证码。</p>\n" +
+        "  <p>如果您没有请求此操作，请忽略此邮件。</p>\n" +
+        "  <p>谢谢，<br/>您的团队</p>\n" +
+        "</body>\n" +
+        "</html>", // 邮件模板
     });
 
     return { message: "找回密码邮件已发送" };
   }
 
-  async resetPassword(token: string, newPassword: string) {
-    // 验证 token 并获取用户信息
-    const decoded = this.jwtService.verify(token);
-    const user = await this.usersService.findByEmail(decoded.email);
+  async resetPassword(resetPasswordDto) {
+    const { verificationCode, newPassword } = resetPasswordDto;
+
+    // 从缓存中获取用户信息
+    const user:User = await this.cache.get(verificationCode);
+
+    if(!user){
+      return { message: "验证码不正确" };
+    }
 
     // 更新用户密码
-    user.password = newPassword;
-    await this.usersService.update(user.id, user);
+    await this.usersService.update(user.id, { password: newPassword });
 
     return { message: "密码修改成功" };
   }

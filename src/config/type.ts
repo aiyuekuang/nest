@@ -37,6 +37,7 @@ export interface IConfig {
   auth?: {
     user?: string;
     pass?: string;
+    secret?: string;
   }
 }
 }

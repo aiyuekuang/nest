@@ -27,11 +27,12 @@ import { UserService } from "./user/services/user.service";
           port: configService.get("mail").port,
           auth: {
             user: configService.get("mail").auth.user,
-            pass: configService.get("mail").auth.pass
+            pass: configService.get("mail").auth.pass,
+            secret: configService.get("mail").auth.secret
           }
         },
         defaults: {
-          from: "\"No Reply\" <noreply@example.com>"
+          from: "2092186738@qq.com"
         }
       })
     }),

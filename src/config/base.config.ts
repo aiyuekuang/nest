@@ -13,8 +13,8 @@ const config: IConfig = {
     port: 465,
     secure: true,
     auth: {
-      user: "2092186738",
-      pass: "zengtao123"
+      user: "2092186738@qq.com",
+      pass: "xxlxzxonfccrebgf", // 授权码,不是邮箱密码
     }
   }
 }

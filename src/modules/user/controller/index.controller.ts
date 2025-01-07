@@ -1,5 +1,5 @@
 // src/modules/user/controller/index.controller.ts
-import { Body, Controller, Post } from "@nestjs/common";
+import { Body, Controller, Post, Req } from "@nestjs/common";
 import { UserService } from "../services/user.service";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { CreateUserReqDto } from "../dto/req/create-user-req.dto";
@@ -7,8 +7,7 @@ import { UpdateUserReqDto } from "../dto/req/update-user-req.dto";
 import { FindUserReqDto } from "../dto/req/find-user-req.dto";
 import { FindByUsernameReqDto } from "../dto/req/find-by-username-req.dto";
 import { UserResDto } from "../dto/res/user-res.dto";
-import { User } from "../entities/user.entity";
-
+import {reqUser} from "../../../utils/nameSpace"
 @ApiTags("users")
 @Controller("users")
 export class UserController {
@@ -26,7 +25,7 @@ export class UserController {
   @Post("findAll")
   @ApiOperation({ summary: "查找所有用户" })
   @ApiResponse({ status: 201, description: "返回所有用户。", type: [UserResDto] })
-  async findAll(@Body() filter: FindByUsernameReqDto): Promise<UserResDto[]> {
+  async findAll(@Body() filter: FindByUsernameReqDto, @Req() req: Request): Promise<UserResDto[]> {
     const users = await this.userService.findAll(filter);
     return users.map(user => new UserResDto(user));
   }
@@ -50,7 +49,9 @@ export class UserController {
   @Post("update")
   @ApiOperation({ summary: "通过ID更新用户" })
   @ApiResponse({ status: 201, description: "用户已成功更新。" })
-  async update(@Body("id") id: string, @Body() updateUserReqDto: UpdateUserReqDto): Promise<void> {
+  async update(@Req() req: Request, @Body() updateUserReqDto: UpdateUserReqDto): Promise<void> {
+    // 从request中获取用户ID
+    let id = req[reqUser].id;
     return this.userService.update(id, updateUserReqDto);
   }
 

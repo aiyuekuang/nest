@@ -35,7 +35,6 @@ export class UserService {
    * @returns 符合过滤条件的用户列表
    */
   async findAll(filter?: FindByUsernameReqDto): Promise<User[]> {
-    this.logger.log("开始查询数据", filter);
 
     return this.user.find({ where: filter });
   }

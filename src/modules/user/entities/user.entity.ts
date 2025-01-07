@@ -1,10 +1,11 @@
 // entities/user.entity.ts
-import { BeforeInsert, BeforeUpdate, Column, Entity, JoinTable, ManyToMany } from "typeorm";
+import { BeforeInsert, BeforeRecover, BeforeUpdate, Column, Entity, JoinTable, ManyToMany } from "typeorm";
 import { Role } from "./role.entity";
 import { ZtBaseEntity } from "../../../utils/base.entity";
 import { ApiProperty } from "@nestjs/swagger";
 import { encrypt } from "../../../utils/common";
 import config from "../../../config";
+import { Exclude } from "class-transformer";
 
 /**
  * 用户实体，表示系统中的一个用户。
@@ -23,11 +24,17 @@ export class User extends ZtBaseEntity {
    */
   @ApiProperty({ example: "password123", description: "用户密码" })
   @Column()
+  @Exclude()
   password: string;
 
-  @BeforeInsert()
+  /**
+   * 当用户被插入数据库之前，对密码进行加密。
+   * 对密码进行加密。
+   */
   @BeforeUpdate()
+  @BeforeInsert()
   encryptPassword() {
+    console.log(this.password);
     if (this.password) {
       this.password = encrypt(this.password, config().password.secret);
     }

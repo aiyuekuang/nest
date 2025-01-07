@@ -1,24 +1,19 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  Inject,
-  Injectable,
-  LoggerService,
-  UnauthorizedException
-} from "@nestjs/common";
+import { CanActivate, ExecutionContext, Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { Request } from "express";
 import { ConfigService } from "@nestjs/config";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from "cache-manager";
 import { SKIP_AUTH_KEY } from "../decorators/skip-auth.decorator";
 import { Reflector } from "@nestjs/core";
+import { getAuthToken } from "../utils/common";
+import { reqUser } from "../utils/nameSpace";
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
     private configService: ConfigService, // 注入配置服务，用于获取配置
     @Inject(CACHE_MANAGER) private cache: Cache, // 注入缓存管理器���用于处理缓存
-  private reflector: Reflector // 注入 Reflector 服务
+    private reflector: Reflector // 注入 Reflector 服务
   ) {
   }
 
@@ -26,7 +21,7 @@ export class AuthGuard implements CanActivate {
 
     const skipAuth = this.reflector.getAllAndOverride<boolean>(SKIP_AUTH_KEY, [
       context.getHandler(),
-      context.getClass(),
+      context.getClass()
     ]);
 
     if (skipAuth) {
@@ -39,9 +34,8 @@ export class AuthGuard implements CanActivate {
 
     // 💡 在这里我们将 payload 挂载到请求对象上
     // 以便我们可以在路由处理器中访问它
-    request["user"] = await this.getUser(request); // 获取用户信息并挂载到请求对象上
+    request[reqUser] = await this.getUser(request); // 获取用户信息并挂载到请求对象上
 
-    console.log(`用户信息：${request["user"]}`); // 打印用户信息
     return true; // 返回true，允许请求通过
   }
 
@@ -61,23 +55,10 @@ export class AuthGuard implements CanActivate {
   }
 
   private async extractTokenFromHeader(request: Request): Promise<string> {
-    const [type, tokenStr] = request.headers.authorization?.split(" ") ?? []; // 从请求头中提取token类型和token字符串
-    console.log(tokenStr,type);
 
-
-    if (!type || !tokenStr) {
-      return undefined; // 如果没有token类型或token字符串，返回undefined
+    let key = await getAuthToken(request, this.cache);
+    if (key) {
+      return await this.cache.get(key); // 返回用户信息
     }
-    if (type === "Bearer") {
-      // 从缓存中获取token
-      const user = await this.cache.store.keys(`${tokenStr}-*`);
-      console.log(user);
-      if (user && user.length) {
-
-        return user[0]; // 返回用户信息
-      }
-    }
-    return undefined;
-
   }
 }

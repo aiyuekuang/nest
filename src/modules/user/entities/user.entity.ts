@@ -30,15 +30,16 @@ export class User extends ZtBaseEntity {
   /**
    * 当用户被插入数据库之前，对密码进行加密。
    * 对密码进行加密。
+   * update会不触发，密码前端传过来的是加密后的密码，因为有这个问题，所以先注释掉
    */
-  @BeforeUpdate()
-  @BeforeInsert()
-  encryptPassword() {
-    console.log(this.password);
-    if (this.password) {
-      this.password = encrypt(this.password, config().password.secret);
-    }
-  }
+  // @BeforeUpdate()
+  // @BeforeInsert()
+  // encryptPassword() {
+  //   console.log(this.password);
+  //   if (this.password) {
+  //     this.password = encrypt(this.password, config().password.secret);
+  //   }
+  // }
 
   /**
    * 与角色实体的多对多关系。

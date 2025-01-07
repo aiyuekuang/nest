@@ -1,13 +1,21 @@
-import path, { join } from 'path';
-import { IConfig } from './type';
+import { IConfig } from "./type";
 
 const config: IConfig = {
-
-  jwt: {
-    secret: 'zzh_milk',
-    expiresIn: '1d',
+  password: {
+    secret: "zt_secret"
   },
-
-};
-
-export default config;
+  jwt: {
+    secret: "zt_secret",
+    expiresIn: "1d"
+  },
+  mail: {
+    host: "smtp.qq.com",
+    port: 465,
+    secure: true,
+    auth: {
+      user: "2092186738",
+      pass: "zengtao123"
+    }
+  }
+}
+  export default config;

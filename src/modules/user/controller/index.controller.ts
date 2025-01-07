@@ -26,7 +26,7 @@ export class UserController {
   @Post("findAll")
   @ApiOperation({ summary: "查找所有用户" })
   @ApiResponse({ status: 201, description: "返回所有用户。", type: [UserResDto] })
-  async findAll(@Body() filter: Partial<User>): Promise<UserResDto[]> {
+  async findAll(@Body() filter: FindByUsernameReqDto): Promise<UserResDto[]> {
     const users = await this.userService.findAll(filter);
     return users.map(user => new UserResDto(user));
   }

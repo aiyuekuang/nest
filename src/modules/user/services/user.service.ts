@@ -6,13 +6,18 @@ import { User } from "../entities/user.entity";
 import { CreateUserReqDto } from "../dto/req/create-user-req.dto";
 import { UpdateUserReqDto } from "../dto/req/update-user-req.dto";
 import { Repository } from "typeorm";
+import { LoggerService } from "../../../logger/logger.service";
+import { FindByUsernameReqDto } from "../dto/req/find-by-username-req.dto";
+import { LoginDto } from "../../auth/dto/req/login.dto";
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
-    private readonly user: Repository<User>
-  ) {}
+    private readonly user: Repository<User>,
+    private readonly logger: LoggerService
+  ) {
+  }
 
   /**
    * 创建新用户
@@ -29,7 +34,9 @@ export class UserService {
    * @param filter - 可选过滤条件
    * @returns 符合过滤条件的用户列表
    */
-  async findAll(filter?: Partial<User>): Promise<User[]> {
+  async findAll(filter?: FindByUsernameReqDto): Promise<User[]> {
+    this.logger.log("开始查询数据", filter);
+
     return this.user.find({ where: filter });
   }
 
@@ -66,5 +73,18 @@ export class UserService {
    */
   async remove(id: string): Promise<void> {
     await this.user.delete(id);
+  }
+
+  /**
+   * 通过用户名和密码查找用户
+   * @returns 具有指定用户名和密码的用户
+   * @param loginDto
+   */
+  async findByUsernameAndPassword(loginDto: LoginDto): Promise<User> {
+    return this.user.findOne({ where: loginDto });
+  }
+
+  async findByEmail(email: string): Promise<User> {
+    return this.user.findOne({ where: { email } });
   }
 }

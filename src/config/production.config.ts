@@ -2,8 +2,6 @@ import { join } from "path";
 import { IConfig } from "./type";
 
 const config: IConfig = {
-  xlbServerUrl: "https://hxl-api.xlbsoft.com",
-
   // 数据库配置
   database: {
     type: "mysql",
@@ -15,6 +13,11 @@ const config: IConfig = {
     entities: [join(process.cwd(), "**", "*.entity.js")],
     synchronize: true // 在开发环境下可以使用，生产环境需要手动管理数据库结构变化
   },
+  redis: {
+    type: "redis",
+    host: "localhost",
+    port: 6379
+  }
 };
 
 export default config;

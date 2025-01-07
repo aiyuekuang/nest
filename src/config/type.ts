@@ -21,4 +21,22 @@ export interface IConfig {
     username?: string;
     password?: string;
   };
+  redis?: {
+    type?: string;
+    host?: string;
+    port?: number;
+    username?: string;
+  };
+  password?: {
+    secret?: string;
+  },
+  mail?: {
+  host?: string;
+  port?: number;
+  secure?: boolean;
+  auth?: {
+    user?: string;
+    pass?: string;
+  }
+}
 }

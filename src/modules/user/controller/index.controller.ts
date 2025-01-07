@@ -50,9 +50,9 @@ export class UserController {
   @ApiOperation({ summary: "通过ID更新用户" })
   @ApiResponse({ status: 201, description: "用户已成功更新。" })
   async update(@Req() req: Request, @Body() updateUserReqDto: UpdateUserReqDto): Promise<void> {
-    // 从request中获取用户ID
-    let id = req[reqUser].id;
-    return this.userService.update(id, updateUserReqDto);
+    // 通过用户名查找用户
+    const user = await this.userService.findByUsername(updateUserReqDto.username);
+    return this.userService.update(user.id, updateUserReqDto);
   }
 
   @Post("remove")

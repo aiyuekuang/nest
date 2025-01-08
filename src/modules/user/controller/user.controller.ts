@@ -38,6 +38,26 @@ export class UserController {
     return new UserResDto(user);
   }
 
+  // 通过token获取用户信息
+  @Post("findByToken")
+  @ApiOperation({ summary: "通过token获取用户信息" })
+  @ApiResponse({ status: 201, description: "返回具有给定token的用户。", type: UserResDto })
+  async findByToken(@Req() req: Request): Promise<UserResDto> {
+    // 通过req的user获取用户信息
+    const user = req[reqUser];
+    // 通过用户id获取用户角色
+    let userALL = await this.userService.findRolesByUserId(user.id);
+    console.log(222,userALL)
+    if(userALL.roles && userALL.roles.length > 0){
+      user.permissions = this.userService.findPermissionsByRoles(userALL.roles);
+    }
+    return {
+      ...user,
+    };
+  }
+
+
+
   @Post("findByUsername")
   @ApiOperation({ summary: "通过用户名查找用户" })
   @ApiResponse({ status: 201, description: "返回具有给定用户名的用户。", type: UserResDto })

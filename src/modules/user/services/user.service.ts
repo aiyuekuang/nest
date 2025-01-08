@@ -9,6 +9,8 @@ import { Repository } from "typeorm";
 import { LoggerService } from "../../../logger/logger.service";
 import { FindByUsernameReqDto } from "../dto/req/find-by-username-req.dto";
 import { LoginDto } from "../../auth/dto/req/login.dto";
+import { Role } from "../entities/role.entity";
+import { Permission } from "../entities/permission.entity";
 
 @Injectable()
 export class UserService {
@@ -34,9 +36,11 @@ export class UserService {
    * @param filter - 可选过滤条件
    * @returns 符合过滤条件的用户列表
    */
-  async findAll(filter?: FindByUsernameReqDto): Promise<User[]> {
 
-    return this.user.find({ where: filter });
+  async findAll(filter?: FindByUsernameReqDto): Promise<User[]> {
+    const { current, pageSize,status } = filter;
+    console.log(filter);
+    return this.user.find({ where: { status },skip:(current - 1) * pageSize,take:pageSize });
   }
 
   /**
@@ -55,6 +59,15 @@ export class UserService {
    */
   async findByUsername(username: string): Promise<User> {
     return this.user.findOne({ where: { username } });
+  }
+
+  /**
+   * 通过用户名查找用户，然后将整个用户返回，其中包含密码
+   * @param username - 用户名
+   * @returns 具有指定用户名的用户
+   */
+  async findByUsernameWithPassword(username: string): Promise<User> {
+    return this.user.findOne({ where: { username }, select: ["password"] });
   }
 
   /**
@@ -85,5 +98,16 @@ export class UserService {
 
   async findByEmail(email: string): Promise<User> {
     return this.user.findOne({ where: { email } });
+  }
+
+// 通过用户id查找用户所有的角色
+  async findRolesByUserId(userId: string): Promise<User> {
+    return this.user.findOne({ where: { id: userId }, relations: ["roles"] });
+  }
+
+//   通过所有角色查找所有的权限，并去重
+  async findPermissionsByRoles(roles: Role[]): Promise<Permission[]> {
+    const permissions = roles.map((role) => role.permissions).flat();
+    return Array.from(new Set(permissions));
   }
 }

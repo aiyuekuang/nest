@@ -6,10 +6,14 @@ import { ValidationPipe } from "@nestjs/common";
 import { AuthGuard } from "./guard/authGuard";
 import { AllExceptionsFilter } from "./filter/any-exception.filter";
 import { LoggerService } from "./logger/logger.service";
+import config from "./config";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   // app.use(bodyParser.json({ limit: "50mb" }));
+
+  // 全局新增URL前缀
+  app.setGlobalPrefix(config().prefix);
 
   const options = new DocumentBuilder()
     .build();

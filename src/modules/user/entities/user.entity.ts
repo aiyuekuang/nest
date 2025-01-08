@@ -12,19 +12,34 @@ import { Exclude } from "class-transformer";
  */
 @Entity()
 export class User extends ZtBaseEntity {
+
+  // 昵称
+  @Column()
+  nickname: string;
+
+  /**
+   * 启用状态，字符串0或者1，默认值为1。
+   */
+  @Column({ default: "1" })
+  status: string;
+
+
+  /**
+   * 头像。
+   */
+  @Column({ nullable: true })
+  avatar?: string;
+
   /**
    * 用户名。
    */
-  @ApiProperty({ example: "john_doe", description: "用户名" })
   @Column()
   username: string;
 
   /**
    * 用户密码。
    */
-  @ApiProperty({ example: "password123", description: "用户密码" })
-  @Column()
-  @Exclude()
+  @Column({select: false})
   password: string;
 
   /**
@@ -45,7 +60,6 @@ export class User extends ZtBaseEntity {
    * 与角色实体的多对多关系。
    * 一个用户可以有多个角色。
    */
-  @ApiProperty({ type: () => [Role], description: "与角色实体的多对多关系" })
   @ManyToMany(() => Role, role => role.users)
   @JoinTable()
   roles: Role[];
@@ -53,14 +67,12 @@ export class User extends ZtBaseEntity {
   /**
    * 用户的电话号码（可选）。
    */
-  @ApiProperty({ example: "123-456-7890", description: "用户的电话号码", required: false })
   @Column({ nullable: true })
   tel?: string;
 
   /**
    * 用户的电子邮件地址（可选）。
    */
-  @ApiProperty({ example: "john_doe@example.com", description: "用户的电子邮件地址", required: false })
   @Column({ nullable: true })
   email?: string;
 }

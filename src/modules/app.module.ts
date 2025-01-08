@@ -1,5 +1,4 @@
 import { Module } from "@nestjs/common";
-import { UserModule } from "./user/module";
 import configuration from "../config";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
@@ -13,6 +12,7 @@ import { AuthModule } from "./auth/auth.module";
 import { MailerModule } from "@nestjs-modules/mailer";
 import { AuthGuard } from "../guard/authGuard";
 import { UserService } from "./user/services/user.service";
+import { UserModule } from "./user/user.module";
 
 
 @Module({

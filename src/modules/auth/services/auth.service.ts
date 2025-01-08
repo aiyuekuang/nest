@@ -20,15 +20,19 @@ export class AuthService {
   ) {
   }
 
+  //当我是login的时候，需要能查询出password，所以需要在user.service.ts中添加findByUsername方法中添加select
   async login(loginUserDto: LoginDto) {
 
     // 参数的密码解密
     let paramsPassword = decrypt(loginUserDto.password, config().password.secret);
 
+    // 根据用户名查找密码
+    let password: User = await this.usersService.findByUsernameWithPassword(loginUserDto.username);
     let user: User = await this.usersService.findByUsername(loginUserDto.username);
 
+    console.log(user);
     // 数据库的密码解密
-    let dataPassword = decrypt(user.password, config().password.secret);
+    let dataPassword = decrypt(password.password, config().password.secret);
 
     if (dataPassword != paramsPassword) {
       return { message: "用户名或密码错误" };
@@ -36,8 +40,8 @@ export class AuthService {
 
     // 生成 JWT token 并返回
     const payload = {
+      id: user.id,
       username: user.username,
-      password: user.password
     };
     let token = await this.jwtService.signAsync(payload);
 

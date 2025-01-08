@@ -17,6 +17,20 @@ export class Permission extends ZtBaseEntity {
   name: string;
 
   /**
+   * 权限点标识。
+   */
+  @ApiProperty({ example: 'read_privileges', description: '权限点标识' })
+  @Column()
+  sign: string;
+
+  /**
+   * 父ID，非必填
+   */
+  @ApiProperty({ example: '0', description: '父ID' })
+  @Column()
+  parentId: string;
+
+  /**
    * 与角色实体的多对多关系。
    * 一个权限可以分配给多个角色。
    */

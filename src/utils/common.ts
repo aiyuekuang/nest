@@ -51,3 +51,22 @@ export async function getAuthToken(req:any,cache:any,isAll = false): Promise<str
   }
   return undefined
 }
+
+
+/**
+ * 根据数据库的树形数据生成树
+ * @param data - 数据库的树形数据，parent_id为"0"的是根节点
+ * @param parentId - 父节点id
+ * @returns 生成的树形数据
+ * @example
+ */
+export function buildTree(data: any[], parentId: string = "0"): any[] {
+  return data
+    .filter((item) => item.parentId === parentId)
+    .map((item) => {
+      return {
+        ...item,
+        children: buildTree(data, item.id),
+      };
+    });
+}

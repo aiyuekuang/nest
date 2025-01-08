@@ -1,6 +1,9 @@
 import { IConfig } from "./type";
 
 const config: IConfig = {
+
+  // 项目URL的前缀
+  prefix: "nest",
   password: {
     secret: "zt_secret"
   },

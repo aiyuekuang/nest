@@ -1,27 +1,39 @@
 // src/modules/user/controller/index.controller.ts
-import { Body, Controller, Post, Req } from "@nestjs/common";
+import { Body, Controller, Post, Req, UsePipes, ValidationPipe } from "@nestjs/common";
 import { UserService } from "../services/user.service";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { CreateUserReqDto } from "../dto/req/create-user-req.dto";
 import { UpdateUserReqDto } from "../dto/req/update-user-req.dto";
 import { FindUserReqDto } from "../dto/req/find-user-req.dto";
 import { FindByUsernameReqDto } from "../dto/req/find-by-username-req.dto";
+import { reqUser } from "../../../utils/nameSpace";
+import { ZtBaseResDto } from "../../../utils/baseRes.dto";
 import { UserResDto } from "../dto/res/user-res.dto";
-import {reqUser} from "../../../utils/nameSpace"
+
 @ApiTags("users")
 @Controller("users")
 export class UserController {
   constructor(private readonly userService: UserService) {
   }
 
+  /**
+   * 创建用户
+   * @param createUserReqDto - 创建用户请求数据传输对象
+   * @returns 创建的用户响应数据���输对象
+   */
   @Post("create")
   @ApiOperation({ summary: "创建用户" })
   @ApiResponse({ status: 201, description: "用户已成功创建。", type: UserResDto })
-  async create(@Body() createUserReqDto: CreateUserReqDto): Promise<UserResDto> {
-    const user = await this.userService.create(createUserReqDto);
-    return new UserResDto(user);
+  async create(@Body() createUserReqDto: CreateUserReqDto): Promise<void> {
+     return await this.userService.create(createUserReqDto);
   }
 
+  /**
+   * 查找所有用户
+   * @param filter - 查找用户的过滤条件
+   * @param req - 请求对象
+   * @returns 所有用户响应数据传输对象数组
+   */
   @Post("findAll")
   @ApiOperation({ summary: "查找所有用户" })
   @ApiResponse({ status: 201, description: "返回所有用户。", type: [UserResDto] })
@@ -30,6 +42,25 @@ export class UserController {
     return users.map(user => new UserResDto(user));
   }
 
+  /**
+   * 查找所有用户数量，用于分页
+   * @param filter - 查找用户的过滤条件
+   * @param req - 请求对象
+   * @returns 用户数量响应数据传输对象
+   */
+  @Post("findAllByPage")
+  @ApiOperation({ summary: "查找所有用户数量" })
+  @ApiResponse({ status: 201, description: "返回所有用户数量。", type: [ZtBaseResDto] })
+  async findAllByPage(@Body() filter: FindByUsernameReqDto, @Req() req: Request): Promise<ZtBaseResDto> {
+
+    return await this.userService.findCount(filter);
+  }
+
+  /**
+   * 通过ID查找用户
+   * @param findUserReqDto - 查找用户请求数据传输对象
+   * @returns 查找到的用户响应数据传输对象
+   */
   @Post("findOne")
   @ApiOperation({ summary: "通过ID查找用户" })
   @ApiResponse({ status: 201, description: "返回具有给定ID的用户。", type: UserResDto })
@@ -38,7 +69,11 @@ export class UserController {
     return new UserResDto(user);
   }
 
-  // 通过token获取用户信息
+  /**
+   * 通过token获取用户信息
+   * @param req - 请求对象
+   * @returns 具有给定token的用户响应数据传输对象
+   */
   @Post("findByToken")
   @ApiOperation({ summary: "通过token获取用户信息" })
   @ApiResponse({ status: 201, description: "返回具有给定token的用户。", type: UserResDto })
@@ -47,17 +82,21 @@ export class UserController {
     const user = req[reqUser];
     // 通过用户id获取用户角色
     let userALL = await this.userService.findRolesByUserId(user.id);
-    console.log(222,userALL)
-    if(userALL.roles && userALL.roles.length > 0){
+    if (userALL.roles && userALL.roles.length > 0) {
+      console.log(555, userALL.roles);
       user.permissions = this.userService.findPermissionsByRoles(userALL.roles);
+      console.log(666,user.permissions)
     }
     return {
-      ...user,
+      ...user
     };
   }
 
-
-
+  /**
+   * 通过用户名查找用户
+   * @param findByUsernameReqDto - 查找用户请求数据传输对象
+   * @returns 查找到的用户响应数据传输对象
+   */
   @Post("findByUsername")
   @ApiOperation({ summary: "通过用户名查找用户" })
   @ApiResponse({ status: 201, description: "返回具有给定用户名的用户。", type: UserResDto })
@@ -66,19 +105,28 @@ export class UserController {
     return new UserResDto(user);
   }
 
+  /**
+   * 通过ID更新用户
+   * @param updateUserReqDto - 更新用户请求数据传输对象
+   */
   @Post("update")
   @ApiOperation({ summary: "通过ID更新用户" })
   @ApiResponse({ status: 201, description: "用户已成功更新。" })
-  async update(@Req() req: Request, @Body() updateUserReqDto: UpdateUserReqDto): Promise<void> {
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  async update(@Body() updateUserReqDto: CreateUserReqDto): Promise<void> {
+    console.log(5566, updateUserReqDto)
     // 通过用户名查找用户
-    const user = await this.userService.findByUsername(updateUserReqDto.username);
-    return this.userService.update(user.id, updateUserReqDto);
+    return this.userService.updateUser(updateUserReqDto);
   }
 
+  /**
+   * 通过ID删除用户
+   * @param findUserReqDto - 查找用户请求数据传输对象
+   */
   @Post("remove")
   @ApiOperation({ summary: "通过ID删除用户" })
   @ApiResponse({ status: 201, description: "用户已成功删除。" })
   async remove(@Body() findUserReqDto: FindUserReqDto): Promise<void> {
-    return this.userService.remove(findUserReqDto.id);
+    return this.userService.remove(findUserReqDto.id || findUserReqDto.idList);
   }
 }

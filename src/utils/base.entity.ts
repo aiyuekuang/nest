@@ -1,5 +1,7 @@
 // src/entities/base.entity.ts
 import { Column, CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Transform } from "class-transformer";
+import moment from "moment";
 
 export abstract class ZtBaseEntity {
   /**
@@ -17,6 +19,7 @@ export abstract class ZtBaseEntity {
     precision: 0, // Precision to seconds
     default: () => "CURRENT_TIMESTAMP" // 设置默认值为 CURRENT_TIMESTAMP
   })
+  @Transform(({ value }) => moment(value).format("YYYY-MM-DD HH:mm:ss"))
   createdAt: Date;
 
   /**
@@ -35,6 +38,7 @@ export abstract class ZtBaseEntity {
     default: () => "CURRENT_TIMESTAMP",
     onUpdate: "CURRENT_TIMESTAMP" // 设置更新时自动更新时间
   })
+  @Transform(({ value }) => moment(value).format("YYYY-MM-DD HH:mm:ss"))
   updatedAt: Date;
 
   /**

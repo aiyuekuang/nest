@@ -20,5 +20,4 @@ const config: IConfig = {
   }
 };
 
-console.log(66777, join(__dirname, "..", "modules", "**", "**", "*.entity.{ts,js}"));
 export default config;

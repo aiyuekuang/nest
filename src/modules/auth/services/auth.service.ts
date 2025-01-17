@@ -30,7 +30,6 @@ export class AuthService {
     let password: User = await this.usersService.findByUsernameWithPassword(loginUserDto.username);
     let user: User = await this.usersService.findByUsername(loginUserDto.username);
 
-    console.log(user);
     // 数据库的密码解密
     let dataPassword = decrypt(password.password, config().password.secret);
 

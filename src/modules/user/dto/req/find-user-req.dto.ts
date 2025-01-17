@@ -2,6 +2,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class FindUserReqDto {
-  @ApiProperty({ required: true, description: '用户id', example: '1' })
+  @ApiProperty({ required: false, description: '用户id', example: '1' })
   id: string;
+
+  @ApiProperty({ required: false, description: '用户id数组', example: ['1', '2'] })
+  idList: string[];
 }

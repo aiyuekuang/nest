@@ -22,9 +22,7 @@ export class PermissionService {
   async findAll(): Promise<Permission[]> {
     // 获取所有权限
     let permissions = await this.permissionRepository.find({});
-    console.log(permissions);
     if(permissions.length !== 0){
-      console.log('buildTree(permissions)', buildTree(permissions));
 
       return buildTree(permissions);
     }else {

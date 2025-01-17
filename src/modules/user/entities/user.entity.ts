@@ -40,7 +40,7 @@ export class User extends ZtBaseEntity {
    * 用户密码。
    */
   @Column({select: false})
-  password: string;
+  password: string = "";
 
   /**
    * 当用户被插入数据库之前，对密码进行加密。
@@ -75,4 +75,10 @@ export class User extends ZtBaseEntity {
    */
   @Column({ nullable: true })
   email?: string;
+
+
+  /**
+   * 用户权限数组
+   */
+  permissions: string[];
 }

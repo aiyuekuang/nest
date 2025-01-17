@@ -1,4 +1,4 @@
-import * as CryptoJS from 'crypto-js';
+import * as CryptoJS from "crypto-js";
 
 /**
  * 使用密钥加密给定的明文。
@@ -7,7 +7,7 @@ import * as CryptoJS from 'crypto-js';
  * @returns 加密后的文本。
  */
 export function encrypt(plaintext: string, secretKey: string): string {
-  if(!plaintext){
+  if (!plaintext) {
     return "";
   }
   return CryptoJS.AES.encrypt(plaintext, secretKey).toString();
@@ -31,7 +31,7 @@ export function decrypt(ciphertext: string, secretKey: string): string {
  * @param isAll - 是否获取所有token，是就是数组，否就是字符串
  * @returns token字符串。
  */
-export async function getAuthToken(req:any,cache:any,isAll = false): Promise<string | undefined> {
+export async function getAuthToken(req: any, cache: any, isAll = false): Promise<string | undefined> {
   const [type, tokenStr] = req.headers.authorization?.split(" ") ?? []; // 从请求头中提取token类型和token字符串
 
 
@@ -42,14 +42,14 @@ export async function getAuthToken(req:any,cache:any,isAll = false): Promise<str
     // 从缓存中获取token
     const userKeys = await cache.store.keys(`${tokenStr}-*`);
     if (userKeys && userKeys.length) {
-      if(isAll){
-        return userKeys
-      }else {
+      if (isAll) {
+        return userKeys;
+      } else {
         return userKeys[0]; // 返回用户信息
       }
     }
   }
-  return undefined
+  return undefined;
 }
 
 
@@ -66,7 +66,25 @@ export function buildTree(data: any[], parentId: string = "0"): any[] {
     .map((item) => {
       return {
         ...item,
-        children: buildTree(data, item.id),
+        children: buildTree(data, item.id)
       };
     });
 }
+
+/**
+ * 根据dto中的参数生成查询条件
+ * @example
+ */
+export function filterData(filter: any,dto:any) {
+  const { pageIndex = 1, pageSize = 10, status } = filter;
+  let obj = {};
+  for (let key in dto) {
+    if (filter[key] !== undefined) {
+      obj[key] = filter[key];
+    }
+  }
+  return obj;
+}
+
+
+

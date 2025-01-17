@@ -1,13 +1,11 @@
 // src/entities/base.entity.ts
 
-import { User } from "../modules/user/entities/user.entity";
-
-export abstract class ZtBaseResDto {
+export class ZtBaseResDto {
   /**
    * 当前页码。
    *
    * */
-  current?: number;
+  pageIndex?: number;
 
   /**
    * 总页数。
@@ -21,9 +19,20 @@ export abstract class ZtBaseResDto {
    */
   pageSize?: number;
 
-  protected constructor(current?: number, total?: number, pageSize?: number) {
-    this.current = current;
+  /**
+   * 分页后的数据主体。
+   *
+   */
+  data?: any[];
+
+  constructor(filter: any, res: any, Dto: any) {
+    const { pageIndex, pageSize } = filter;
+    const [data, total] = res;
+    this.pageIndex = pageIndex;
     this.total = total;
     this.pageSize = pageSize;
+    this.data = data.map((data2)=>{
+      return new Dto(data2)
+    });
   }
 }

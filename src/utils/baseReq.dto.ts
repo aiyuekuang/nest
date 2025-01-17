@@ -6,7 +6,7 @@ export abstract class ZtBaseReqDto {
   * 当前页码。
   *
   * */
-  current?: number;
+  pageIndex?: number;
 
   /**
    * 每页显示的记录数。

@@ -1,7 +1,7 @@
 // src/modules/user/services/role.service.ts
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { In, Repository } from "typeorm";
 import { Role } from "../entities/role.entity";
 import { FindByUsernameReqDto } from "../dto/req/find-by-username-req.dto";
 import { ZtBaseResDto } from "../../../utils/baseRes.dto";
@@ -16,7 +16,9 @@ import { FindPermissionDto } from "../dto/req/find-permission.dto";
 export class RoleService {
   constructor(
     @InjectRepository(Role)
-    private readonly roleRepository: Repository<Role>
+    private readonly roleRepository: Repository<Role>,
+    @InjectRepository(Permission)
+    private readonly permissionRepository: Repository<Permission>
   ) {
   }
 
@@ -69,7 +71,7 @@ export class RoleService {
    */
   async findPermissions(findPermissionDto: FindPermissionDto): Promise<string[]> {
     const { id } = findPermissionDto;
-    const role:Role = await this.roleRepository.findOne({ where: { id }, relations: ["permissions"] });
+    const role: Role = await this.roleRepository.findOne({ where: { id }, relations: ["permissions"] });
     return role.permissions.map((permission: any) => permission.id);
   }
 
@@ -79,21 +81,21 @@ export class RoleService {
    * @param role - 部分更新的角色实体,如果有权限字段，则更新权限，更新时，根据id将原有的删除，再添加新的
    */
   async update(role: UpdateRoleDto): Promise<void> {
-    const {id, permissions } = role;
-    console.log(777,permissions)
-
-    if (permissions) {
-      const roleEntity = await this.roleRepository.findOne({ where: { id }, relations: ["permissions"] });
-
-      console.log(6666,permissions)
-      await this.roleRepository.createQueryBuilder().relation(Role, "permissions").of(roleEntity).remove(roleEntity.permissions);
-      await this.roleRepository.createQueryBuilder().relation(Role, "permissions").of(roleEntity).add(permissions);
-      // 删除permissions字段
-      delete role.permissions;
+    const { id, permissions } = role;
+    let roleEntity = new Role();
+    roleEntity = {
+      ...role,
+      ...roleEntity
     }
-    console.log(5555, role);
-
-    await this.roleRepository.update(id, role);
+    if(permissions && permissions.length > 0){
+      // 先用permissions的id数组，批量查询出permission实体
+      roleEntity.permissions = await this.permissionRepository.find({ where: { id: In(permissions) } })
+      await this.roleRepository.save(roleEntity);
+    }else {
+      // 如果没有权限字段，则直接更新
+      delete roleEntity.permissions;
+      await this.roleRepository.update(id, roleEntity);
+    }
   }
 
   /**

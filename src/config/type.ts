@@ -22,6 +22,8 @@ export interface IConfig {
     entities?: string[];
     // 是否自动同步数据库结构
     synchronize?: boolean;
+    // 命名策略
+    namingStrategy?: any;
   };
 
   // JWT 配置

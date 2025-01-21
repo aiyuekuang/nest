@@ -34,5 +34,5 @@ export class CreatePermissionDto {
    */
   @ApiProperty({ example: "1", description: '排序字段' })
   @IsNotEmpty()
-  sortOrder: number;
+  sort: number;
 }

@@ -30,6 +30,7 @@ export class Role extends ZtBaseEntity {
    */
   @ApiProperty({ type: () => [User], description: '与用户实体的多对多关系' })
   @ManyToMany(() => User, user => user.roles)
+  @JoinTable()
   users: User[];
 
   /**
@@ -48,6 +49,6 @@ export class Role extends ZtBaseEntity {
   @ApiProperty({ type: () => [Permission], description: '与权限实体的多对多关系' })
   @ManyToMany(() => Permission, permission => permission.roles)
   @JoinTable()
-  permissions: string[];
+  permissions: Permission[];
 
 }

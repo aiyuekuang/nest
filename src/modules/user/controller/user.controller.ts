@@ -84,7 +84,7 @@ export class UserController {
     let userALL = await this.userService.findRolesByUserId(user.id);
     if (userALL.roles && userALL.roles.length > 0) {
       console.log(555, userALL.roles);
-      user.permissions = this.userService.findPermissionsByRoles(userALL.roles);
+      user.permissions = await this.userService.findPermissionsByRoles(userALL.roles);
       console.log(666,user.permissions)
     }
     return {

@@ -75,7 +75,7 @@ export function buildTree(data: any[], parentId: string = "0"): any[] {
  * 根据dto中的参数生成查询条件
  * @example
  */
-export function filterData(filter: any,dto:any) {
+export function filterData(filter: any, dto: any) {
   const { pageIndex = 1, pageSize = 10, status } = filter;
   let obj = {};
   for (let key in dto) {
@@ -86,5 +86,8 @@ export function filterData(filter: any,dto:any) {
   return obj;
 }
 
-
-
+// 对象数组，对相同id的对象进行去重
+export function unique(arr: any[]) {
+  const res = new Map();
+  return arr.filter((arr) => !res.has(arr.id) && res.set(arr.id, 1));
+}

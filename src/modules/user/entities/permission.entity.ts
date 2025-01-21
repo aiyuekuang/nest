@@ -1,5 +1,5 @@
 // entities/permission.entity.ts
-import { Entity, Column, ManyToMany } from 'typeorm';
+import { Entity, Column, ManyToMany, Tree, TreeParent, TreeChildren } from "typeorm";
 import { Role } from './role.entity';
 import { ZtBaseEntity } from "../../../utils/base.entity";
 import { ApiProperty } from '@nestjs/swagger';
@@ -8,6 +8,7 @@ import { ApiProperty } from '@nestjs/swagger';
  * 权限实体，表示系统中的一个权限。
  */
 @Entity()
+@Tree("nested-set")
 export class Permission extends ZtBaseEntity {
   /**
    * 权限名称。
@@ -22,13 +23,19 @@ export class Permission extends ZtBaseEntity {
   @ApiProperty({ example: 'read_privileges', description: '权限点标识' })
   @Column()
   sign: string;
+  //
+  // /**
+  //  * 父ID，非必填
+  //  */
+  // @ApiProperty({ example: '0', description: '父ID' })
+  // @Column({ nullable: true, type: 'varchar' })
+  // parentId: string;
 
-  /**
-   * 父ID，非必填
-   */
-  @ApiProperty({ example: '0', description: '父ID' })
-  @Column()
-  parentId: string;
+  @TreeParent()
+  parent: Permission;
+
+  @TreeChildren()
+  children: Permission[];
 
   /**
    * 与角色实体的多对多关系。
@@ -43,5 +50,5 @@ export class Permission extends ZtBaseEntity {
    */
   @ApiProperty({ example: 1, description: '排序字段' })
   @Column()
-  sortOrder: number;
+  sort: number;
 }

@@ -1,11 +1,11 @@
 // src/modules/user/service/user.service.ts
 import { Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
+import { InjectDataSource, InjectRepository } from "@nestjs/typeorm";
 
 import { User } from "../entities/user.entity";
 import { CreateUserReqDto } from "../dto/req/create-user-req.dto";
 import { UpdateUserReqDto } from "../dto/req/update-user-req.dto";
-import { In, Repository } from "typeorm";
+import { DataSource, In, Repository } from "typeorm";
 import { LoggerService } from "../../../logger/logger.service";
 import { FindByUsernameReqDto } from "../dto/req/find-by-username-req.dto";
 import { LoginDto } from "../../auth/dto/req/login.dto";
@@ -14,6 +14,7 @@ import { ZtBaseResDto } from "../../../utils/baseRes.dto";
 import { filterData } from "../../../utils/common";
 import { FindUserReqDto } from "../dto/req/find-user-req.dto";
 import { UserResDto } from "../dto/res/user-res.dto";
+import { Permission } from "../entities/permission.entity";
 
 @Injectable()
 export class UserService {
@@ -22,8 +23,12 @@ export class UserService {
     private readonly user: Repository<User>,
     private readonly logger: LoggerService,
     @InjectRepository(Role)
-    private readonly roleRepository: Repository<Role>
+    private readonly roleRepository: Repository<Role>,
+    @InjectRepository(Permission)
+    private readonly permissionRepository: Repository<Permission>,
+    @InjectDataSource() private dataSource: DataSource
   ) {
+    this.permissionRepository = this.dataSource.getTreeRepository(Permission);
   }
 
   /**
@@ -160,7 +165,39 @@ export class UserService {
 
   //   通过所有角色查找所有的权限，并去重
   async findPermissionsByRoles(roles: Role[]): Promise<string[]> {
-    const permissions = roles.flatMap(role => role.permissions);
-    return [...new Set(permissions)];
+    // 获取所有角色的ID数组
+    const roleIds = roles.map(role => role.id);
+
+    // 获取所有角色及其关联的权限
+    const rolePermissions = await this.roleRepository
+      .createQueryBuilder("role")
+      .leftJoinAndSelect("role.permissions", "permission")
+      .where("role.id IN (:...roleIds)", { roleIds })
+      .getMany();
+
+    // 提取所有权限的ID数组
+    const permissionIds = rolePermissions
+      .flatMap(role => role.permissions)
+      .map(permission => permission.id);
+
+    // 如果没有权限ID，返回空数组
+    if (permissionIds.length === 0) {
+      return [];
+    }
+
+    // 使用递归CTE查询所有权限及其子权限
+    const query = `
+        WITH RECURSIVE permission_tree AS (
+          SELECT * FROM permission WHERE id IN (${permissionIds.map(id => `'${id}'`).join(",")})
+          UNION ALL
+          SELECT p.* FROM permission p
+          INNER JOIN permission_tree pt ON pt.id = p.parentId
+        )
+        SELECT DISTINCT id, name, sign FROM permission_tree
+        `;
+
+    // 执行查询，获取所有权限
+    // 返回权限的标识符数组
+    return await this.dataSource.query(query);
   }
 }

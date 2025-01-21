@@ -1,33 +1,37 @@
 // src/modules/user/services/permission.service.ts
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Permission } from '../entities/permission.entity';
-import { User } from "../entities/user.entity";
+import { Injectable } from "@nestjs/common";
+import { InjectDataSource, InjectRepository } from "@nestjs/typeorm";
+import { DataSource, Repository } from "typeorm";
+import { Permission } from "../entities/permission.entity";
 import { CreatePermissionDto } from "../dto/req/create-permission.dto";
 import { UpdatePermissionDto } from "../dto/req/update-permission.dto";
-import { buildTree } from "../../../utils/common";
 
 @Injectable()
 export class PermissionService {
   constructor(
     @InjectRepository(Permission)
     private readonly permissionRepository: Repository<Permission>,
-  ) {}
-
-  async create(permission: CreatePermissionDto): Promise<Permission> {
-    return this.permissionRepository.save(permission);
+    @InjectDataSource() private dataSource: DataSource
+  ) {
   }
 
+  async create(permission: CreatePermissionDto): Promise<Permission> {
+    let parent = await this.permissionRepository.findOne({ where: { id: permission.parentId } });
+
+    let entity = new Permission();
+    entity.name = permission.name;
+    entity.sign = permission.sign;
+    entity.parent = parent;
+    entity.sort = permission.sort;
+
+    return this.dataSource.manager.save(entity);
+    // return this.permissionRepository.save(permission);
+  }
+
+  // sort字段排序
   async findAll(): Promise<Permission[]> {
     // 获取所有权限
-    let permissions = await this.permissionRepository.find({});
-    if(permissions.length !== 0){
-
-      return buildTree(permissions);
-    }else {
-      return []
-    }
+    return this.dataSource.manager.getTreeRepository(Permission).findTrees();
   }
 
   async findOne(id: string): Promise<Permission> {

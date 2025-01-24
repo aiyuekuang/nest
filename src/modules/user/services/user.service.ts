@@ -123,7 +123,6 @@ export class UserService {
   async updateUser(createUserReqDto: CreateUserReqDto): Promise<void> {
     const { id, rolesId } = createUserReqDto;
 
-    console.log(7777,createUserReqDto)
 
     // 更新用户到数据库，解决Cannot query across many-to-many for property roles
     await this.user.save({

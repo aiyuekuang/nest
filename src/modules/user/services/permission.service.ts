@@ -30,6 +30,7 @@ export class PermissionService {
 
   // sort字段排序
   async findAll(): Promise<Permission[]> {
+
     // 获取所有权限
     return this.dataSource.manager.getTreeRepository(Permission).findTrees();
   }

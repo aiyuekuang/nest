@@ -24,6 +24,9 @@ export class AuthGuard implements CanActivate {
       context.getClass()
     ]);
 
+
+
+
     if (skipAuth) {
       return true; // 如果存在 SkipAuth 装饰器，跳过验证
     }

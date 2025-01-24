@@ -1,38 +1,24 @@
-// src/modules/user/dto/create-permission.dto.ts
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsNumber } from 'class-validator';
+import { Transform } from 'class-transformer';
 
-/**
- * 创建权限的DTO
- */
 export class CreatePermissionDto {
-  /**
-   * 权限名称
-   */
-  @ApiProperty({ example: 'READ_PRIVILEGES', description: '权限名称' })
   @IsNotEmpty()
   @IsString()
   name: string;
 
-  /**
-   * 权限点标识
-   */
-  @ApiProperty({ example: 'read_privileges', description: '权限点标识' })
   @IsNotEmpty()
   @IsString()
   sign: string;
 
-  /**
-   * 父ID，非必填，允许为空
-   */
-  @ApiProperty({ example: '0', description: '父ID' })
-  @IsString()
-  parentId: string;
+  @IsOptional()
+  @Transform(({ value }) => (value === undefined || value === null ? null : value))
+  parentId: string | null;
 
-  /**
-   * 排序字段
-   */
-  @ApiProperty({ example: "1", description: '排序字段' })
   @IsNotEmpty()
+  @IsNumber()
   sort: number;
+
+  constructor(user: any) {
+    Object.assign(this as any, user);
+  }
 }

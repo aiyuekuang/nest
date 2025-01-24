@@ -9,6 +9,7 @@ import { User } from "../../user/entities/user.entity";
 import { decrypt, getAuthToken } from "../../../utils/common";
 import config from "../../../config";
 import { UpdateUserReqDto } from "../../user/dto/req/update-user-req.dto";
+import { reqUser } from "../../../utils/nameSpace";
 
 @Injectable()
 export class AuthService {
@@ -61,6 +62,8 @@ export class AuthService {
     // 这里可以实现 token 的黑名单机制
     return { message: "用户已登出" };
   }
+
+
 
   async forgotPassword(username: string) {
     const user = await this.usersService.findByUsername(username);

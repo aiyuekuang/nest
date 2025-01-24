@@ -163,6 +163,8 @@ export class UserService {
     return this.user.findOne({ where: { id: userId }, relations: ["roles"] });
   }
 
+
+
   //   通过所有角色查找所有的权限，并去重
   async findPermissionsByRoles(roles: Role[]): Promise<string[]> {
     // 获取所有角色的ID数组

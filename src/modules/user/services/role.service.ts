@@ -1,16 +1,19 @@
 // src/modules/user/services/role.service.ts
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { In, Repository } from "typeorm";
 import { Role } from "../entities/role.entity";
 import { FindByUsernameReqDto } from "../dto/req/find-by-username-req.dto";
 import { ZtBaseResDto } from "../../../utils/baseRes.dto";
-import { filterData } from "../../../utils/common";
+import { filterData, getAuthToken, getUserToken } from "../../../utils/common";
 import { FindUserReqDto } from "../dto/req/find-user-req.dto";
 import { RoleResDto } from "../dto/res/role-res.dto";
 import { UpdateRoleDto } from "../dto/req/create-update-role.dto";
 import { Permission } from "../entities/permission.entity";
 import { FindPermissionDto } from "../dto/req/find-permission.dto";
+import { reqUser } from "../../../utils/nameSpace";
+import { Cache, CACHE_MANAGER } from "@nestjs/cache-manager";
+import { User } from "../entities/user.entity";
 
 @Injectable()
 export class RoleService {
@@ -18,7 +21,11 @@ export class RoleService {
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
     @InjectRepository(Permission)
-    private readonly permissionRepository: Repository<Permission>
+    private readonly permissionRepository: Repository<Permission>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @Inject(CACHE_MANAGER)
+    private readonly cache: Cache
   ) {
   }
 
@@ -75,23 +82,46 @@ export class RoleService {
     return role.permissions.map((permission: any) => permission.id);
   }
 
+  /**
+   * 通过角色ID查找所有用户
+   * @param roleId - 角色ID
+   * @returns 具有指定角色ID的用户列表
+   */
+  async findUsersByRoleId(roleId: string): Promise<User[]> {
+    return this.userRepository.find({
+      where: {
+        roles: {
+          id: roleId
+        }
+      },
+      relations: ["roles"]
+    });
+  }
 
   /**
    * 更新角色
    * @param role - 部分更新的角色实体,如果有权限字段，则更新权限，更新时，根据id将原有的删除，再添加新的
+   * @param req
    */
-  async update(role: UpdateRoleDto): Promise<void> {
+  async update(role: UpdateRoleDto, req): Promise<void> {
     const { id, permissions } = role;
     let roleEntity = new Role();
     roleEntity = {
       ...role,
       ...roleEntity
-    }
-    if(permissions && permissions.length > 0){
+    };
+    if (permissions && permissions.length > 0) {
       // 先用permissions的id数组，批量查询出permission实体
-      roleEntity.permissions = await this.permissionRepository.find({ where: { id: In(permissions) } })
+      roleEntity.permissions = await this.permissionRepository.find({ where: { id: In(permissions) } });
+      // 然后将原有的权限删除
       await this.roleRepository.save(roleEntity);
-    }else {
+      // 通过角色id寻找所有的用户
+      let user = await this.findUsersByRoleId(roleEntity.id);
+
+      console.log(66766, user);
+      // 然后将用户的所有token都删除
+      await this.logoutAll(user);
+    } else {
       // 如果没有权限字段，则直接更新
       delete roleEntity.permissions;
       await this.roleRepository.update(id, roleEntity);
@@ -104,5 +134,17 @@ export class RoleService {
    */
   async remove(id: string): Promise<void> {
     await this.roleRepository.delete(id);
+  }
+
+  async logoutAll(user=[]) {
+    let res = await getUserToken(this.cache, user);
+    console.log(66766, res, user);
+    if (res && res.length) {
+      // 删除缓存,res是一个数组
+      await this.cache.store.mdel(...res);
+    }
+    // 处理用户登出逻辑
+    // 这里可以实现 token 的黑名单机制
+    return { message: "所有用户已登出" };
   }
 }

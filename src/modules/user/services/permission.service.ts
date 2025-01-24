@@ -4,7 +4,6 @@ import { InjectDataSource, InjectRepository } from "@nestjs/typeorm";
 import { DataSource, Repository } from "typeorm";
 import { Permission } from "../entities/permission.entity";
 import { CreatePermissionDto } from "../dto/req/create-permission.dto";
-import { UpdatePermissionDto } from "../dto/req/update-permission.dto";
 
 @Injectable()
 export class PermissionService {
@@ -16,16 +15,18 @@ export class PermissionService {
   }
 
   async create(permission: CreatePermissionDto): Promise<Permission> {
-    let parent = await this.permissionRepository.findOne({ where: { id: permission.parentId } });
+    let parent = new Permission();
+    if (permission.parentId) {
+      parent = await this.permissionRepository.findOne({ where: { id: permission.parentId } });
+    }
 
     let entity = new Permission();
     entity.name = permission.name;
     entity.sign = permission.sign;
-    entity.parent = parent;
+    entity.parent = parent; // 确保 parent 为 null 时正确赋值
     entity.sort = permission.sort;
 
     return this.dataSource.manager.save(entity);
-    // return this.permissionRepository.save(permission);
   }
 
   // sort字段排序
@@ -38,7 +39,8 @@ export class PermissionService {
     return this.permissionRepository.findOne({ where: { id } });
   }
 
-  async update(id: string, permission: Partial<UpdatePermissionDto>): Promise<void> {
+  async update(id: string, permission: CreatePermissionDto): Promise<void> {
+    console.log(77, id, permission);
     await this.permissionRepository.update(id, permission);
   }
 

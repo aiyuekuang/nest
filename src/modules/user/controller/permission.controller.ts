@@ -44,7 +44,7 @@ export class PermissionController {
    * @param permission - 部分更新的权限实体
    */
   @Post('update')
-  async update(@Body('id') id: string, @Body() permission: Partial<UpdatePermissionDto>): Promise<void> {
+  async update(@Body('id') id: string, @Body() permission: CreatePermissionDto): Promise<void> {
     return this.permissionService.update(id, permission);
   }
 

@@ -31,8 +31,9 @@ export function decrypt(ciphertext: string, secretKey: string): string {
  * @param isAll - 是否获取所有token，是就是数组，否就是字符串
  * @returns token字符串。
  */
-export async function getAuthToken(req: any, cache: any, isAll = false): Promise<string | undefined> {
+export async function getAuthToken(req: any, cache: any, isAll = false): Promise<any> {
   const [type, tokenStr] = req.headers.authorization?.split(" ") ?? []; // 从请求头中提取token类型和token字符串
+  let tokenKey = `${tokenStr}-*`;
 
 
   if (!type || !tokenStr) {
@@ -40,7 +41,7 @@ export async function getAuthToken(req: any, cache: any, isAll = false): Promise
   }
   if (type === "Bearer") {
     // 从缓存中获取token
-    const userKeys = await cache.store.keys(`${tokenStr}-*`);
+    const userKeys = await cache.store.keys(tokenKey);
     if (userKeys && userKeys.length) {
       if (isAll) {
         return userKeys;
@@ -52,6 +53,29 @@ export async function getAuthToken(req: any, cache: any, isAll = false): Promise
   return undefined;
 }
 
+/**
+ * 从请求中提取token字符串。
+ * @param cache - 缓存对象。
+ * @param user
+ * @param name
+ * @returns token字符串。
+ */
+export async function getUserToken(cache: any, user: string[] = [], name = "username"): Promise<any[]> {
+  let userKeys = [];
+
+  if (user && user.length) {
+
+    for (const pattern of user) {
+      let tokenKey = `*-${pattern[name]}`;
+      const keys = await cache.store.keys(tokenKey);
+      userKeys = userKeys.concat(keys);
+    }
+    return userKeys;
+
+  }
+
+  return undefined;
+}
 
 /**
  * 根据数据库的树形数据生成树

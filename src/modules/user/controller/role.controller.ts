@@ -1,5 +1,5 @@
 // src/modules/user/controller/role.controller.ts
-import { Body, Controller, Post, Req, UsePipes, ValidationPipe } from "@nestjs/common";
+import { Body, Controller, Inject, Post, Req, UsePipes, ValidationPipe } from "@nestjs/common";
 import { RoleService } from "../services/role.service";
 import { Role } from "../entities/role.entity";
 import { ZtBaseResDto } from "../../../utils/baseRes.dto";
@@ -7,11 +7,17 @@ import { FindByUsernameReqDto } from "../dto/req/find-by-username-req.dto";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { UpdateRoleDto } from "../dto/req/create-update-role.dto";
 import { FindPermissionDto } from "../dto/req/find-permission.dto";
+import { Cache, CACHE_MANAGER } from "@nestjs/cache-manager";
+import { AuthService } from "../../auth/services/auth.service";
 
 @ApiTags("roles")
 @Controller("roles")
 export class RoleController {
-  constructor(private readonly roleService: RoleService) {
+  constructor(
+    private readonly roleService: RoleService,
+    @Inject(CACHE_MANAGER)
+    private readonly cache: Cache
+  ) {
   }
 
   /**
@@ -47,6 +53,7 @@ export class RoleController {
   @ApiOperation({ summary: "查找所有角色，用于分页" })
   @ApiResponse({ status: 200, description: "返回所有角色数量。", type: ZtBaseResDto })
   async findAllByPage(@Body() filter: FindByUsernameReqDto, @Req() req: Request): Promise<ZtBaseResDto> {
+
     return await this.roleService.findCount(filter);
   }
 
@@ -77,13 +84,14 @@ export class RoleController {
   /**
    * 更新角色
    * @param role - 部分更新的角色实体
+   * @param req
    */
   @Post("update")
   @ApiOperation({ summary: "更新角色" })
   @ApiResponse({ status: 200, description: "角色已成功更新。" })
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  async update(@Body() role: UpdateRoleDto): Promise<void> {
-    return this.roleService.update(role);
+  async update(@Body() role: UpdateRoleDto,@Req() req): Promise<void> {
+    return this.roleService.update(role,req);
   }
 
   /**

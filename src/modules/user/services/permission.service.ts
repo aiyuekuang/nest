@@ -15,15 +15,14 @@ export class PermissionService {
   }
 
   async create(permission: CreatePermissionDto): Promise<Permission> {
-    let parent = new Permission();
+    let entity = new Permission();
+
     if (permission.parentId) {
-      parent = await this.permissionRepository.findOne({ where: { id: permission.parentId } });
+      entity.parent = await this.permissionRepository.findOne({ where: { id: permission.parentId } });
     }
 
-    let entity = new Permission();
     entity.name = permission.name;
     entity.sign = permission.sign;
-    entity.parent = parent; // 确保 parent 为 null 时正确赋值
     entity.sort = permission.sort;
 
     return this.dataSource.manager.save(entity);
@@ -40,8 +39,17 @@ export class PermissionService {
   }
 
   async update(id: string, permission: CreatePermissionDto): Promise<void> {
-    console.log(77, id, permission);
-    await this.permissionRepository.update(id, permission);
+    let entity = new Permission();
+
+    if (permission.parentId) {
+      entity.parent = await this.permissionRepository.findOne({ where: { id: permission.parentId } });
+    }
+
+    entity.name = permission.name;
+    entity.sign = permission.sign;
+    entity.sort = permission.sort;
+
+    await this.permissionRepository.update(id, entity);
   }
 
   async remove(id: string): Promise<void> {

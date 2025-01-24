@@ -117,8 +117,6 @@ export class RoleService {
       await this.roleRepository.save(roleEntity);
       // 通过角色id寻找所有的用户
       let user = await this.findUsersByRoleId(roleEntity.id);
-
-      console.log(66766, user);
       // 然后将用户的所有token都删除
       await this.logoutAll(user);
     } else {

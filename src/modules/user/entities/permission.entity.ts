@@ -3,12 +3,14 @@ import { Entity, Column, ManyToMany, Tree, TreeParent, TreeChildren } from "type
 import { Role } from './role.entity';
 import { ZtBaseEntity } from "../../../utils/base.entity";
 import { ApiProperty } from '@nestjs/swagger';
+import { Optional } from "@nestjs/common";
+import { IsOptional } from "class-validator";
 
 /**
  * 权限实体，表示系统中的一个权限。
  */
 @Entity()
-@Tree("nested-set")
+@Tree("closure-table")
 export class Permission extends ZtBaseEntity {
   /**
    * 权限名称。
@@ -28,6 +30,7 @@ export class Permission extends ZtBaseEntity {
    * 父ID，非必填
    */
   @ApiProperty({ example: '0', description: '父ID' })
+  @Column({ nullable: true })
   parentId: string;
 
   @TreeParent()

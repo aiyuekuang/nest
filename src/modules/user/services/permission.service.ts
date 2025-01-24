@@ -50,7 +50,7 @@ export class PermissionService {
     entity.sign = permission.sign;
     entity.sort = permission.sort;
 
-    await this.permissionRepository.update(id, entity);
+    await this.dataSource.manager.update(Permission, id, entity);
   }
 
   async remove(id: string): Promise<void> {

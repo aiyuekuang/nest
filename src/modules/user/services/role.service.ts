@@ -115,6 +115,10 @@ export class RoleService {
       roleEntity.permissions = await this.permissionRepository.find({ where: { id: In(permissions) } });
       // 然后将原有的权限删除
       await this.roleRepository.save(roleEntity);
+
+      console.log(8888, roleEntity)
+
+
       // 通过角色id寻找所有的用户
       let user = await this.findUsersByRoleId(roleEntity.id);
       // 然后将用户的所有token都删除

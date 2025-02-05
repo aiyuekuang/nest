@@ -16,7 +16,7 @@ export class CreateUserReqDto {
   @ApiProperty({ required: false, example: "password" })
   @IsString()
   @IsOptional()
-  password?: string;
+  password?: string = "123456";
 
   @ApiProperty({ required: false, example: "1111@qq.com" })
   @IsString()
@@ -37,5 +37,9 @@ export class CreateUserReqDto {
   @IsArray()
   @IsOptional()
   rolesId?: string[];
+
+  @ApiProperty({ required: false, example: "张三" })
+  @IsString()
+  nickname: string;
 
 }

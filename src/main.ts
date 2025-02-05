@@ -37,7 +37,10 @@ async function bootstrap() {
   // ValidationPipe 会根据 DTO（数据传输对象）中定义的验证规则自动验证传入的请求。
   // 如果验证失败，它将抛出一个适当的错误响应。
   // 这有助于确保应用程序处理的数据是有效的，并且符合预期的格式和约束。
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe({
+    transform: true,
+    whitelist: true
+  }));
   app.useGlobalGuards(app.get(AuthGuard));
   await app.listen(3000);
 }

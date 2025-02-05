@@ -65,8 +65,6 @@ export class RoleController {
   @ApiResponse({ status: 200, description: "角色已成功更新。" })
   @UsePipes(new ValidationPipe({ whitelist: true }))
   async update(@Body() role: UpdateRoleDto,@Req() req): Promise<void> {
-    console.log(8888, role)
-
     await this.roleService.update(role,req);
   }
 

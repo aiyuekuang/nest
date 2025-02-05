@@ -5,24 +5,9 @@ import moment from "moment";
 
 export class ZtBaseEntity {
   /**
-   * 实体的主键，自动生成UUID。
-   */
-  @PrimaryGeneratedColumn("uuid")
-  id: string;
-
-  /**
    * 创建时间，时间使用 ISO 格式，并且精确到秒。
    */
-  @CreateDateColumn({
-    type: "timestamp",
-    name: "created_at",
-    precision: 0, // Precision to seconds
-    default: () => "CURRENT_TIMESTAMP" // 设置默认值为 CURRENT_TIMESTAMP
-  })
-  @Transform(({ value }) => {
-    console.log("value", value);
-    return moment(value).format("YYYY-MM-DD HH:mm:ss");
-  })
+  @Transform(({ value }) => moment(value).format("YYYY-MM-DD HH:mm:ss"))
   createdAt: Date;
 
   /**
@@ -34,13 +19,6 @@ export class ZtBaseEntity {
   /**
    * 更新时间，时间使用 ISO 格式，并且精确到秒。
    */
-  @UpdateDateColumn({
-    type: "timestamp",
-    name: "updated_at",
-    precision: 0, // Precision to seconds
-    default: () => "CURRENT_TIMESTAMP",
-    onUpdate: "CURRENT_TIMESTAMP" // 设置更新时自动更新时间
-  })
   @Transform(({ value }) => moment(value).format("YYYY-MM-DD HH:mm:ss"))
   updatedAt: Date;
 

@@ -68,6 +68,7 @@ export class UserService {
       take: pageSize
     });
 
+
     // 获取用户之后，将用户的角色查出来
     const users = res[0];
     for (const user of users) {
@@ -75,7 +76,6 @@ export class UserService {
       user.roles = roles.roles;
     }
 
-    console.log(users);
     return new ZtBaseResDto(filter, res, UserResDto);
   }
 
@@ -139,8 +139,10 @@ export class UserService {
    */
   async remove(idOrIds: string | string[]): Promise<void> {
     if (Array.isArray(idOrIds)) {
+      // 如果是数组，则使用 In 条件删除多个用户
       await this.user.delete({ id: In(idOrIds) });
     } else {
+      // 如果是单个 ID，则直接删除该用户
       await this.user.delete(idOrIds);
     }
   }

@@ -116,7 +116,6 @@ export class RoleService {
       // 然后将原有的权限删除
       await this.roleRepository.save(roleEntity);
 
-      console.log(8888, roleEntity)
 
 
       // 通过角色id寻找所有的用户
@@ -140,7 +139,6 @@ export class RoleService {
 
   async logoutAll(user=[]) {
     let res = await getUserToken(this.cache, user);
-    console.log(66766, res, user);
     if (res && res.length) {
       // 删除缓存,res是一个数组
       await this.cache.store.mdel(...res);

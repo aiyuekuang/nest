@@ -39,8 +39,8 @@ export class User extends ZtBaseEntity {
   /**
    * 用户密码。
    */
-  @Column({select: false})
-  password: string = "";
+  @Column()
+  password: string;
 
   /**
    * 当用户被插入数据库之前，对密码进行加密。

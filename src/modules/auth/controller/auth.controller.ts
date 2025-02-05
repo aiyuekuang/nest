@@ -6,6 +6,8 @@ import { ForgotPasswordDto } from "../dto/req/forgot-password.dto";
 import { ResetPasswordDto } from "../dto/req/reset-password.dto";
 import { AuthService } from "../services/auth.service";
 import { SkipAuth } from "../../../decorators/skip-auth.decorator";
+import { OldPasswordDto } from "../dto/req/change-password.dto";
+import { reqUser } from "../../../utils/nameSpace";
 
 @ApiTags("auth")
 @Controller("auth")
@@ -35,7 +37,7 @@ export class AuthController {
   }
 
   @SkipAuth()
-  @Post("forgot-password")
+  @Post("sendEmail")
   @ApiOperation({ summary: "用邮箱找回密码" })
   @ApiResponse({ status: 201, description: "找回密码邮件已发送。" })
   @UsePipes(new ValidationPipe({ whitelist: true }))
@@ -45,12 +47,24 @@ export class AuthController {
   }
 
   @SkipAuth()
-  @Post("reset-password")
+  @Post("resetPassword")
   @ApiOperation({ summary: "修改密码" })
   @ApiResponse({ status: 201, description: "密码修改成功。" })
   @UsePipes(new ValidationPipe({ whitelist: true }))
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
     // 调用 AuthService 的 resetPassword 方法进行密码修改
     return this.authService.resetPassword(resetPasswordDto);
+  }
+
+  // 修改密码
+  @Post("changePassword")
+  @ApiOperation({ summary: "网页中修改密码" })
+  @ApiResponse({ status: 201, description: "密码修改成功。" })
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  async changePassword(@Body() resetPasswordDto: OldPasswordDto,@Req() req) {
+    // 获取用户信息
+    const user = req[reqUser];
+    // 调用 AuthService 的 resetPassword 方法进行密码修改
+    return this.authService.changePassword(resetPasswordDto,user);
   }
 }

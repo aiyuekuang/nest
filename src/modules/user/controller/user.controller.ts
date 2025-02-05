@@ -24,7 +24,6 @@ export class UserController {
   @Post("create")
   @ApiOperation({ summary: "创建用户" })
   @ApiResponse({ status: 201, description: "用户已成功创建。", type: UserResDto })
-  @UsePipes(new ValidationPipe({ whitelist: true }))
   async create(@Body() createUserReqDto: CreateUserReqDto): Promise<void> {
     return await this.userService.create(createUserReqDto);
   }
@@ -38,7 +37,6 @@ export class UserController {
   @Post("findAll")
   @ApiOperation({ summary: "查找所有用户" })
   @ApiResponse({ status: 201, description: "返回所有用户。", type: [UserResDto] })
-  @UsePipes(new ValidationPipe({ whitelist: true }))
   async findAll(@Body() filter: FindByUsernameReqDto, @Req() req: Request): Promise<UserResDto[]> {
     const users = await this.userService.findAll(filter);
     return users.map(user => new UserResDto(user));
@@ -53,7 +51,6 @@ export class UserController {
   @Post("findAllByPage")
   @ApiOperation({ summary: "查找所有用户数量" })
   @ApiResponse({ status: 201, description: "返回所有用户数量。", type: [ZtBaseResDto] })
-  @UsePipes(new ValidationPipe({ whitelist: true }))
   async findAllByPage(@Body() filter: FindByUsernameReqDto, @Req() req: Request): Promise<ZtBaseResDto> {
     return await this.userService.findCount(filter);
   }
@@ -66,7 +63,6 @@ export class UserController {
   @Post("findOne")
   @ApiOperation({ summary: "通过ID查找用户" })
   @ApiResponse({ status: 201, description: "返回具有给定ID的用户。", type: UserResDto })
-  @UsePipes(new ValidationPipe({ whitelist: true }))
   async findOne(@Body() findUserReqDto: FindUserReqDto): Promise<UserResDto> {
     const user = await this.userService.findOne(findUserReqDto.id);
     return new UserResDto(user);
@@ -80,7 +76,6 @@ export class UserController {
   @Post("findByToken")
   @ApiOperation({ summary: "通过token获取用户信息" })
   @ApiResponse({ status: 201, description: "返回具有给定token的用户。", type: UserResDto })
-  @UsePipes(new ValidationPipe({ whitelist: true }))
   async findByToken(@Req() req: Request): Promise<UserResDto> {
     // 通过req的user获取用户信息
     const user = req[reqUser];
@@ -102,7 +97,6 @@ export class UserController {
   @Post("findByUsername")
   @ApiOperation({ summary: "通过用户名查找用户" })
   @ApiResponse({ status: 201, description: "返回具有给定用户名的用户。", type: UserResDto })
-  @UsePipes(new ValidationPipe({ whitelist: true }))
   async findByUsername(@Body() findByUsernameReqDto: FindByUsernameReqDto): Promise<UserResDto> {
     const user = await this.userService.findByUsername(findByUsernameReqDto.username);
     return new UserResDto(user);
@@ -115,7 +109,6 @@ export class UserController {
   @Post("update")
   @ApiOperation({ summary: "通过ID更新用户" })
   @ApiResponse({ status: 201, description: "用户已成功更新。" })
-  @UsePipes(new ValidationPipe({ whitelist: true }))
   async update(@Body() updateUserReqDto: CreateUserReqDto): Promise<void> {
     // 通过用户名查找用户
     return this.userService.updateUser(updateUserReqDto);
@@ -128,7 +121,6 @@ export class UserController {
   @Post("remove")
   @ApiOperation({ summary: "通过ID删除用户" })
   @ApiResponse({ status: 201, description: "用户已成功删除。" })
-  @UsePipes(new ValidationPipe({ whitelist: true }))
   async remove(@Body() findUserReqDto: FindUserReqDto): Promise<void> {
     return this.userService.remove(findUserReqDto.id || findUserReqDto.idList);
   }

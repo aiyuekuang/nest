@@ -16,7 +16,7 @@ export class CreateUserReqDto {
   @ApiProperty({ required: false, example: "password" })
   @IsString()
   @IsOptional()
-  password?: string = "123456";
+  password?: string = "U2FsdGVkX18CNyzk9H7wvLnoFT0TLGLOQoyyySthwgo=";
 
   @ApiProperty({ required: false, example: "1111@qq.com" })
   @IsString()

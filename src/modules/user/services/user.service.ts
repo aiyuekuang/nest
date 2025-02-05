@@ -60,17 +60,30 @@ export class UserService {
    * @returns 符合过滤条件的用户列表
    */
   async findCount(filter?: FindByUsernameReqDto): Promise<ZtBaseResDto> {
-    const { pageIndex = 1, pageSize = 10 } = filter;
+    const { pageIndex = 1, pageSize = 10, sort } = filter;
+
+    // 默认排序配置
+    const defaultSort = { sortBy: 'createdAt', sortOrder: 'descend' };
+
+    // 如果 sort 为 null，则使用默认排序
+    const sortConfig = sort || defaultSort;
+
+    // 构建排序对象
+    const order = {
+      [sortConfig.sortBy]: sortConfig.sortOrder === 'descend' ? 'DESC' : 'ASC'
+    };
 
     const res = await this.user.findAndCount({
       where: { ...filterData(filter, FindUserReqDto) },
       skip: (pageIndex - 1) * pageSize,
-      take: pageSize
+      take: pageSize,
+      order: order
     });
 
 
+
     // 获取用户之后，将用户的角色查出来
-    const users = res[0];
+    const users: User[] = res[0];
     for (const user of users) {
       const roles = await this.findRolesByUserId(user.id);
       user.roles = roles.roles;
@@ -164,7 +177,6 @@ export class UserService {
   async findRolesByUserId(userId: string): Promise<User> {
     return this.user.findOne({ where: { id: userId }, relations: ["roles"] });
   }
-
 
 
   //   通过所有角色查找所有的权限，并去重

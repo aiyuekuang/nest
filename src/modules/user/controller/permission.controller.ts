@@ -44,7 +44,6 @@ export class PermissionController {
    * @param permission - 部分更新的权限实体
    */
   @Post('update')
-  @UsePipes(new ValidationPipe({ whitelist: true }))
   async update(@Body('id') id: string, @Body() permission: CreatePermissionDto): Promise<void> {
     return this.permissionService.update(id, permission);
   }

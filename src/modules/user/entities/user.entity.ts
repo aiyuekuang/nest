@@ -1,11 +1,7 @@
 // entities/user.entity.ts
-import { BeforeInsert, BeforeRecover, BeforeUpdate, Column, Entity, JoinTable, ManyToMany } from "typeorm";
+import { Column, Entity, JoinTable, ManyToMany } from "typeorm";
 import { Role } from "./role.entity";
 import { ZtBaseEntity } from "../../../utils/base.entity";
-import { ApiProperty } from "@nestjs/swagger";
-import { encrypt } from "../../../utils/common";
-import config from "../../../config";
-import { Exclude } from "class-transformer";
 
 /**
  * 用户实体，表示系统中的一个用户。

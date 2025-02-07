@@ -4,6 +4,9 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsNumber, IsOptional, IsString } from "class-validator";
 
+/**
+ * 排序字段。
+ * */
 class Sort {
   @ApiProperty({ required: false, description: '排序字段', example: 'createdAt' })
   @IsString()

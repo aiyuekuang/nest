@@ -63,14 +63,21 @@ export class UserService {
     const { pageIndex = 1, pageSize = 10, sort } = filter;
 
     // 默认排序配置
-    const defaultSort = { sortBy: 'createdAt', sortOrder: 'descend' };
+    const defaultSort = { sortBy: "createdAt", sortOrder: "descend" };
 
     // 如果 sort 为 null，则使用默认排序
     const sortConfig = sort || defaultSort;
 
+    // 通过this.user查询当前排序字段是否是字符串或者数字类型
+    const metadata = this.user.metadata;
+    const column = await metadata.findColumnWithPropertyName(sortConfig.sortBy);
+    if (!column) {
+      throw new Error(`排序字段 ${sortConfig.sortBy} 不是排序字段`);
+    }
+
     // 构建排序对象
     const order = {
-      [sortConfig.sortBy]: sortConfig.sortOrder === 'descend' ? 'DESC' : 'ASC'
+      [sortConfig.sortBy]: sortConfig.sortOrder === "descend" ? "DESC" : "ASC"
     };
 
     const res = await this.user.findAndCount({
@@ -79,8 +86,6 @@ export class UserService {
       take: pageSize,
       order: order
     });
-
-
 
     // 获取用户之后，将用户的角色查出来
     const users: User[] = res[0];

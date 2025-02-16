@@ -1,5 +1,5 @@
 // src/modules/auth/auth.service.ts
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from "@nestjs/jwt";
 import { UserService } from "../../user/services/user.service";
 import { MailerService } from "@nestjs-modules/mailer";
@@ -35,7 +35,7 @@ export class AuthService {
     let dataPassword = decrypt(password.password, config().password.secret);
 
     if (dataPassword != paramsPassword) {
-      return { message: "用户名或密码错误" };
+      throw new UnauthorizedException("用户名或密码错误");
     }
 
     // 生成 JWT token 并返回

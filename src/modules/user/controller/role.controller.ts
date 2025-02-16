@@ -23,7 +23,6 @@ export class RoleController {
   @Post("create")
   @ApiOperation({ summary: "创建角色" })
   @ApiResponse({ status: 201, description: "角色已成功创建。", type: Role })
-  @UsePipes(new ValidationPipe({ whitelist: true }))
   async create(@Body() role: Role): Promise<Role> {
     return this.roleService.create(role);
   }
@@ -31,7 +30,6 @@ export class RoleController {
   @Post("findAll")
   @ApiOperation({ summary: "查找所有角色" })
   @ApiResponse({ status: 200, description: "返回所有角色。", type: [Role] })
-  @UsePipes(new ValidationPipe({ whitelist: true }))
   async findAll(): Promise<Role[]> {
     return this.roleService.findAll();
   }
@@ -39,7 +37,6 @@ export class RoleController {
   @Post("findAllByPage")
   @ApiOperation({ summary: "查找所有角色，用于分页" })
   @ApiResponse({ status: 200, description: "返回所有角色数量。", type: ZtBaseResDto })
-  @UsePipes(new ValidationPipe({ whitelist: true }))
   async findAllByPage(@Body() filter: FindByUsernameReqDto, @Req() req: Request): Promise<ZtBaseResDto> {
     return await this.roleService.findCount(filter);
   }
@@ -47,7 +44,6 @@ export class RoleController {
   @Post("findOne")
   @ApiOperation({ summary: "通过ID查找角色" })
   @ApiResponse({ status: 200, description: "返回具有给定ID的角色。", type: Role })
-  @UsePipes(new ValidationPipe({ whitelist: true }))
   async findOne(@Body("id") id: string): Promise<Role> {
     return this.roleService.findOne(id);
   }
@@ -55,7 +51,6 @@ export class RoleController {
   @Post("findPermissions")
   @ApiOperation({ summary: "通过ID查找角色的权限" })
   @ApiResponse({ status: 200, description: "返回具有给定ID的角色的权限。", type: [String] })
-  @UsePipes(new ValidationPipe({ whitelist: true }))
   async findPermissions(@Body() findPermissionDto: FindPermissionDto): Promise<string[]> {
     return this.roleService.findPermissions(findPermissionDto);
   }
@@ -63,17 +58,13 @@ export class RoleController {
   @Post("update")
   @ApiOperation({ summary: "更新角色" })
   @ApiResponse({ status: 200, description: "角色已成功更新。" })
-  @UsePipes(new ValidationPipe({ whitelist: true }))
   async update(@Body() role: UpdateRoleDto,@Req() req): Promise<void> {
-    console.log(8888, role)
-
     await this.roleService.update(role,req);
   }
 
   @Post("remove")
   @ApiOperation({ summary: "删除角色" })
   @ApiResponse({ status: 200, description: "角色已成功删除。" })
-  @UsePipes(new ValidationPipe({ whitelist: true }))
   async remove(@Body("id") id: string): Promise<void> {
     return this.roleService.remove(id);
   }

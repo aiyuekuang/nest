@@ -60,22 +60,40 @@ export class UserService {
    * @returns 符合过滤条件的用户列表
    */
   async findCount(filter?: FindByUsernameReqDto): Promise<ZtBaseResDto> {
-    const { pageIndex = 1, pageSize = 10 } = filter;
+    const { pageIndex = 1, pageSize = 10, sort } = filter;
+
+    // 默认排序配置
+    const defaultSort = { sortBy: "createdAt", sortOrder: "descend" };
+
+    // 如果 sort 为 null，则使用默认排序
+    const sortConfig = sort || defaultSort;
+
+    // 通过this.user查询当前排序字段是否是字符串或者数字类型
+    const metadata = this.user.metadata;
+    const column = await metadata.findColumnWithPropertyName(sortConfig.sortBy);
+    if (!column) {
+      throw new Error(`排序字段 ${sortConfig.sortBy} 不是排序字段`);
+    }
+
+    // 构建排序对象
+    const order = {
+      [sortConfig.sortBy]: sortConfig.sortOrder === "descend" ? "DESC" : "ASC"
+    };
 
     const res = await this.user.findAndCount({
       where: { ...filterData(filter, FindUserReqDto) },
       skip: (pageIndex - 1) * pageSize,
-      take: pageSize
+      take: pageSize,
+      order: order
     });
 
     // 获取用户之后，将用户的角色查出来
-    const users = res[0];
+    const users: User[] = res[0];
     for (const user of users) {
       const roles = await this.findRolesByUserId(user.id);
       user.roles = roles.roles;
     }
 
-    console.log(users);
     return new ZtBaseResDto(filter, res, UserResDto);
   }
 
@@ -139,8 +157,10 @@ export class UserService {
    */
   async remove(idOrIds: string | string[]): Promise<void> {
     if (Array.isArray(idOrIds)) {
+      // 如果是数组，则使用 In 条件删除多个用户
       await this.user.delete({ id: In(idOrIds) });
     } else {
+      // 如果是单个 ID，则直接删除该用户
       await this.user.delete(idOrIds);
     }
   }
@@ -162,7 +182,6 @@ export class UserService {
   async findRolesByUserId(userId: string): Promise<User> {
     return this.user.findOne({ where: { id: userId }, relations: ["roles"] });
   }
-
 
 
   //   通过所有角色查找所有的权限，并去重

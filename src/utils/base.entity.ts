@@ -1,9 +1,9 @@
 // src/entities/base.entity.ts
 import { Column, CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Transform } from "class-transformer";
-import moment from "moment";
+import * as moment from "moment";
 
-export abstract class ZtBaseEntity {
+export class ZtBaseEntity {
   /**
    * 实体的主键，自动生成UUID。
    */
@@ -19,13 +19,17 @@ export abstract class ZtBaseEntity {
     precision: 0, // Precision to seconds
     default: () => "CURRENT_TIMESTAMP" // 设置默认值为 CURRENT_TIMESTAMP
   })
-  @Transform(({ value }) => moment(value).format("YYYY-MM-DD HH:mm:ss"))
+  @Transform(({ value }) => {
+  // 转换成YYYY-MM-DD HH:mm:ss格式
+    return moment(value).format("YYYY-MM-DD HH:mm:ss");
+  })
   createdAt: Date;
 
   /**
    * 创建人。
    */
   @Column({ nullable: true, name: "created_by" })
+  @Transform(({ value }) => value || "system")
   createdBy?: string;
 
   /**
@@ -42,8 +46,9 @@ export abstract class ZtBaseEntity {
   updatedAt: Date;
 
   /**
-   * 更新人。
+   * 更新人，默认值
    */
   @Column({ nullable: true, name: "updated_by" })
+  @Transform(({ value }) => value || "system")
   updatedBy?: string;
 }

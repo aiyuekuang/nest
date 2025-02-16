@@ -1,5 +1,5 @@
 // src/modules/auth/auth.service.ts
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { UserService } from "../../user/services/user.service";
 import { MailerService } from "@nestjs-modules/mailer";
@@ -35,7 +35,7 @@ export class AuthService {
     let dataPassword = decrypt(password.password, config().password.secret);
 
     if (dataPassword != paramsPassword) {
-      throw new UnauthorizedException("用户名或密码错误");
+      throw new UnauthorizedException({code: 401, message: "用户名或密码错误"});
     }
 
     // 生成 JWT token 并返回
@@ -103,6 +103,23 @@ export class AuthService {
 
     if(!user){
       return { message: "验证码不正确" };
+    }
+
+    // 更新用户密码
+    await this.usersService.update(user.id, { password: newPassword });
+
+    return { message: "密码修改成功" };
+  }
+
+
+  async changePassword(resetPasswordDto,user) {
+    const { oldPassword, newPassword } = resetPasswordDto;
+
+    // 解密旧密码和新密码
+    let oldPasswordDecrypt = decrypt(oldPassword, config().password.secret);
+    // 判断旧密码是否正确
+    if (oldPasswordDecrypt != user.password) {
+      return { message: "旧密码不正确" };
     }
 
     // 更新用户密码

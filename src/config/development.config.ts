@@ -6,7 +6,7 @@ const config: IConfig = {
   // 数据库配置
   database: {
     type: "mysql",
-    host: "192.168.31.77",
+    host: "192.168.31.78",
     port: 3306,
     username: "root",
     password: "zengtao123",
@@ -17,7 +17,7 @@ const config: IConfig = {
   },
   redis: {
     type: "redis",
-    host: "192.168.31.77",
+    host: "192.168.31.78",
     port: 6379
   }
 };

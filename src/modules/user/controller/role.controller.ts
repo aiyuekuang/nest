@@ -23,7 +23,7 @@ export class RoleController {
   @Post("create")
   @ApiOperation({ summary: "创建角色" })
   @ApiResponse({ status: 201, description: "角色已成功创建。", type: Role })
-  async create(@Body() role: Role): Promise<Role> {
+  async create(@Body() role: UpdateRoleDto): Promise<Role> {
     return this.roleService.create(role);
   }
 

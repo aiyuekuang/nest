@@ -34,8 +34,14 @@ export class RoleService {
    * @param role - 角色实体
    * @returns 创建的角色实体
    */
-  async create(role: Role): Promise<Role> {
-    return this.roleRepository.save(role);
+  async create(role: UpdateRoleDto): Promise<Role> {
+    console.log(2222,role);
+    let roleEntity = new Role();
+    roleEntity = {
+      ...role,
+      ...roleEntity
+    };
+    return this.roleRepository.save(roleEntity);
   }
 
   /**

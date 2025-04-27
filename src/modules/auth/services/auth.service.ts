@@ -45,6 +45,7 @@ export class AuthService {
     };
     let token = await this.jwtService.signAsync(payload);
 
+
     // 将 token 存入缓存，有效期为 24 小时
     await this.cache.set(token + "-" + loginUserDto.username, user, 1000 * 60 * 60 * 24);
 

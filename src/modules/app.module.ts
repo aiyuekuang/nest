@@ -44,8 +44,9 @@ import { UserModule } from "./user/user.module";
         const store = await redisStore({
           socket: {
             host: configService.get("redis").host,
-            port: +configService.get("redis").port
+            port: +configService.get("redis").port,
           },
+          password: configService.get("redis").password,
           ttl: 1000 * 60 * 60 // 1 hour
         });
 

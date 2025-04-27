@@ -18,7 +18,8 @@ const config: IConfig = {
   redis: {
     type: "redis",
     host: "192.168.31.78",
-    port: 6379
+    port: 6379,
+    password: "zengtao123",
   }
 };
 

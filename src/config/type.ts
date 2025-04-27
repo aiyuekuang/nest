@@ -54,6 +54,8 @@ export interface IConfig {
     port?: number;
     // Redis 用户名
     username?: string;
+    // Redis 密码
+    password?: string;
   };
 
   // 密码配置

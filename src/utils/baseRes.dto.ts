@@ -1,6 +1,6 @@
 // src/entities/base.entity.ts
 
-export class ZtBaseResDto {
+export class BaseResponseDto {
   /**
    * 当前页码。
    *

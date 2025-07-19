@@ -1,4 +1,4 @@
-import * as CryptoJS from "crypto-js";
+import * as CryptoJS from 'crypto-js';
 
 /**
  * 使用密钥加密给定的明文。
@@ -8,7 +8,7 @@ import * as CryptoJS from "crypto-js";
  */
 export function encrypt(plaintext: string, secretKey: string): string {
   if (!plaintext) {
-    return "";
+    return '';
   }
   return CryptoJS.AES.encrypt(plaintext, secretKey).toString();
 }
@@ -32,14 +32,13 @@ export function decrypt(ciphertext: string, secretKey: string): string {
  * @returns token字符串。
  */
 export async function getAuthToken(req: any, cache: any, isAll = false): Promise<any> {
-  const [type, tokenStr] = req.headers.authorization?.split(" ") ?? []; // 从请求头中提取token类型和token字符串
+  const [type, tokenStr] = req.headers.authorization?.split(' ') ?? []; // 从请求头中提取token类型和token字符串
   let tokenKey = `${tokenStr}-*`;
-
 
   if (!type || !tokenStr) {
     return undefined; // 如果没有token类型或token字符串，返回undefined
   }
-  if (type === "Bearer") {
+  if (type === 'Bearer') {
     // 从缓存中获取token
     const userKeys = await cache.store.keys(tokenKey);
     if (userKeys && userKeys.length) {
@@ -60,18 +59,16 @@ export async function getAuthToken(req: any, cache: any, isAll = false): Promise
  * @param name
  * @returns token字符串。
  */
-export async function getUserToken(cache: any, user: string[] = [], name = "username"): Promise<any[]> {
+export async function getUserToken(cache: any, user: string[] = [], name = 'username'): Promise<any[]> {
   let userKeys = [];
 
   if (user && user.length) {
-
     for (const pattern of user) {
       let tokenKey = `*-${pattern[name]}`;
       const keys = await cache.store.keys(tokenKey);
       userKeys = userKeys.concat(keys);
     }
     return userKeys;
-
   }
 
   return undefined;
@@ -84,13 +81,13 @@ export async function getUserToken(cache: any, user: string[] = [], name = "user
  * @returns 生成的树形数据
  * @example
  */
-export function buildTree(data: any[], parentId: string = "0"): any[] {
+export function buildTree(data: any[], parentId: string = '0'): any[] {
   return data
     .filter((item) => item.parentId === parentId)
     .map((item) => {
       return {
         ...item,
-        children: buildTree(data, item.id)
+        children: buildTree(data, item.id),
       };
     });
 }

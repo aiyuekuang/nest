@@ -1,19 +1,20 @@
 // src/modules/user/services/role.service.ts
-import { Inject, Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { In, Repository } from "typeorm";
-import { Role } from "../entities/role.entity";
-import { FindByUsernameReqDto } from "../dto/req/find-by-username-req.dto";
-import { ZtBaseResDto } from "../../../utils/baseRes.dto";
-import { filterData, getAuthToken, getUserToken } from "../../../utils/common";
-import { FindUserReqDto } from "../dto/req/find-user-req.dto";
-import { RoleResDto } from "../dto/res/role-res.dto";
-import { UpdateRoleDto } from "../dto/req/create-update-role.dto";
-import { Permission } from "../entities/permission.entity";
-import { FindPermissionDto } from "../dto/req/find-permission.dto";
-import { reqUser } from "../../../utils/nameSpace";
-import { Cache, CACHE_MANAGER } from "@nestjs/cache-manager";
-import { User } from "../entities/user.entity";
+import { In, Repository } from 'typeorm';
+import { Inject, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
+
+import { BaseResponseDto } from '../../../utils/baseRes.dto';
+import { filterData, getAuthToken, getUserToken } from '../../../utils/common';
+import { reqUser } from '../../../utils/nameSpace';
+import { FindByUsernameReqDto } from '../dto/req/find-by-username-req.dto';
+import { FindUserReqDto } from '../dto/req/find-user-req.dto';
+import { FindPermissionDto } from '../dto/req/find-permission.dto';
+import { UpdateRoleDto } from '../dto/req/create-update-role.dto';
+import { RoleResDto } from '../dto/res/role-res.dto';
+import { Role } from '../entities/role.entity';
+import { User } from '../entities/user.entity';
+import { Permission } from '../entities/permission.entity';
 
 @Injectable()
 export class RoleService {
@@ -57,7 +58,7 @@ export class RoleService {
    * @param filter - 可选过滤条件
    * @returns 符合过滤条件的用户列表
    */
-  async findCount(filter?: FindByUsernameReqDto): Promise<ZtBaseResDto> {
+  async findCount(filter?: FindByUsernameReqDto): Promise<BaseResponseDto> {
     const { pageIndex = 1, pageSize = 10, status } = filter;
 
     const res = await this.roleRepository.findAndCount({
@@ -66,7 +67,7 @@ export class RoleService {
       take: pageSize
     });
 
-    return new ZtBaseResDto(filter, res, RoleResDto);
+    return new BaseResponseDto(filter, res, RoleResDto);
   }
 
   /**

@@ -1,20 +1,20 @@
 // src/modules/user/service/user.service.ts
-import { Injectable } from "@nestjs/common";
-import { InjectDataSource, InjectRepository } from "@nestjs/typeorm";
+import { DataSource, In, Repository } from 'typeorm';
+import { Injectable } from '@nestjs/common';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 
-import { User } from "../entities/user.entity";
-import { CreateUserReqDto } from "../dto/req/create-user-req.dto";
-import { UpdateUserReqDto } from "../dto/req/update-user-req.dto";
-import { DataSource, In, Repository } from "typeorm";
-import { LoggerService } from "../../../logger/logger.service";
-import { FindByUsernameReqDto } from "../dto/req/find-by-username-req.dto";
-import { LoginDto } from "../../auth/dto/req/login.dto";
-import { Role } from "../entities/role.entity";
-import { ZtBaseResDto } from "../../../utils/baseRes.dto";
-import { filterData } from "../../../utils/common";
-import { FindUserReqDto } from "../dto/req/find-user-req.dto";
-import { UserResDto } from "../dto/res/user-res.dto";
-import { Permission } from "../entities/permission.entity";
+import { LoggerService } from '../../../logger/logger.service';
+import { BaseResponseDto } from '../../../utils/baseRes.dto';
+import { filterData } from '../../../utils/common';
+import { LoginDto } from '../../auth/dto/req/login.dto';
+import { CreateUserReqDto } from '../dto/req/create-user-req.dto';
+import { UpdateUserReqDto } from '../dto/req/update-user-req.dto';
+import { FindByUsernameReqDto } from '../dto/req/find-by-username-req.dto';
+import { FindUserReqDto } from '../dto/req/find-user-req.dto';
+import { UserResDto } from '../dto/res/user-res.dto';
+import { User } from '../entities/user.entity';
+import { Role } from '../entities/role.entity';
+import { Permission } from '../entities/permission.entity';
 
 @Injectable()
 export class UserService {
@@ -59,7 +59,7 @@ export class UserService {
    * @param filter - 可选过滤条件
    * @returns 符合过滤条件的用户列表
    */
-  async findCount(filter?: FindByUsernameReqDto): Promise<ZtBaseResDto> {
+  async findCount(filter?: FindByUsernameReqDto): Promise<BaseResponseDto> {
     const { pageIndex = 1, pageSize = 10, sort } = filter;
 
     // 默认排序配置
@@ -94,7 +94,7 @@ export class UserService {
       user.roles = roles.roles;
     }
 
-    return new ZtBaseResDto(filter, res, UserResDto);
+    return new BaseResponseDto(filter, res, UserResDto);
   }
 
 

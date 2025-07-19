@@ -3,7 +3,7 @@ import { Column, CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } fr
 import { Transform } from "class-transformer";
 import * as moment from "moment";
 
-export class ZtBaseEntity {
+export class BaseEntity {
   /**
    * 实体的主键，自动生成UUID。
    */

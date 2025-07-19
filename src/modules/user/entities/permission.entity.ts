@@ -1,7 +1,8 @@
 // entities/permission.entity.ts
-import { Entity, Column, ManyToMany, Tree, TreeParent, TreeChildren } from "typeorm";
+import { Entity, Column, ManyToMany, Tree, TreeParent, TreeChildren } from 'typeorm';
+
+import { BaseEntity } from '../../../utils/base.entity';
 import { Role } from './role.entity';
-import { ZtBaseEntity } from "../../../utils/base.entity";
 import { ApiProperty } from '@nestjs/swagger';
 import { Optional } from "@nestjs/common";
 import { IsOptional } from "class-validator";
@@ -11,7 +12,7 @@ import { IsOptional } from "class-validator";
  */
 @Entity()
 @Tree("closure-table")
-export class Permission extends ZtBaseEntity {
+export class Permission extends BaseEntity {
   /**
    * 权限名称。
    */

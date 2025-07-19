@@ -1,12 +1,13 @@
 // src/modules/auth/auth.controller.ts
 import { Body, Controller, Post, Req } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+
 import { LoginDto } from '../dto/req/login.dto';
 import { ForgotPasswordDto } from '../dto/req/forgot-password.dto';
 import { ResetPasswordDto } from '../dto/req/reset-password.dto';
+import { OldPasswordDto } from '../dto/req/change-password.dto';
 import { AuthService } from '../services/auth.service';
 import { SkipAuth } from '../../../decorators/skip-auth.decorator';
-import { OldPasswordDto } from '../dto/req/change-password.dto';
 import { reqUser } from '../../../utils/nameSpace';
 
 @ApiTags('auth')

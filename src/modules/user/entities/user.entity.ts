@@ -1,13 +1,14 @@
 // entities/user.entity.ts
-import { Column, Entity, JoinTable, ManyToMany } from "typeorm";
-import { Role } from "./role.entity";
-import { ZtBaseEntity } from "../../../utils/base.entity";
+import { Column, Entity, JoinTable, ManyToMany } from 'typeorm';
+
+import { BaseEntity } from '../../../utils/base.entity';
+import { Role } from './role.entity';
 
 /**
  * 用户实体，表示系统中的一个用户。
  */
 @Entity()
-export class User extends ZtBaseEntity {
+export class User extends BaseEntity {
 
   // 昵称
   @Column()

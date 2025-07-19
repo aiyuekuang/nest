@@ -1,29 +1,29 @@
 // src/modules/user/controller/index.controller.ts
-import { Body, Controller, Post, Req, UsePipes, ValidationPipe } from "@nestjs/common";
-import { UserService } from "../services/user.service";
-import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
-import { CreateUserReqDto } from "../dto/req/create-user-req.dto";
-import { UpdateUserReqDto } from "../dto/req/update-user-req.dto";
-import { FindUserReqDto } from "../dto/req/find-user-req.dto";
-import { FindByUsernameReqDto } from "../dto/req/find-by-username-req.dto";
-import { reqUser } from "../../../utils/nameSpace";
-import { ZtBaseResDto } from "../../../utils/baseRes.dto";
-import { UserResDto } from "../dto/res/user-res.dto";
+import { Body, Controller, Post, Req, UsePipes, ValidationPipe } from '@nestjs/common';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
-@ApiTags("users")
-@Controller("users")
+import { UserService } from '../services/user.service';
+import { CreateUserReqDto } from '../dto/req/create-user-req.dto';
+import { UpdateUserReqDto } from '../dto/req/update-user-req.dto';
+import { FindUserReqDto } from '../dto/req/find-user-req.dto';
+import { FindByUsernameReqDto } from '../dto/req/find-by-username-req.dto';
+import { reqUser } from '../../../utils/nameSpace';
+import { BaseResponseDto } from '../../../utils/baseRes.dto';
+import { UserResDto } from '../dto/res/user-res.dto';
+
+@ApiTags('users')
+@Controller('users')
 export class UserController {
-  constructor(private readonly userService: UserService) {
-  }
+  constructor(private readonly userService: UserService) {}
 
   /**
    * 创建用户
    * @param createUserReqDto - 创建用户请求数据传输对象
    * @returns 创建的用户响应数据传输对象
    */
-  @Post("create")
-  @ApiOperation({ summary: "创建用户" })
-  @ApiResponse({ status: 201, description: "用户已成功创建。", type: UserResDto })
+  @Post('create')
+  @ApiOperation({ summary: '创建用户' })
+  @ApiResponse({ status: 201, description: '用户已成功创建。', type: UserResDto })
   async create(@Body() createUserReqDto: CreateUserReqDto): Promise<void> {
     return await this.userService.create(createUserReqDto);
   }
@@ -50,8 +50,8 @@ export class UserController {
    */
   @Post("findAllByPage")
   @ApiOperation({ summary: "查找所有用户数量" })
-  @ApiResponse({ status: 201, description: "返回所有用户数量。", type: [ZtBaseResDto] })
-  async findAllByPage(@Body() filter: FindByUsernameReqDto, @Req() req: Request): Promise<ZtBaseResDto> {
+  @ApiResponse({ status: 201, description: "返回所有用户数量。", type: [BaseResponseDto] })
+  async findAllByPage(@Body() filter: FindByUsernameReqDto, @Req() req: Request): Promise<BaseResponseDto> {
     return await this.userService.findCount(filter);
   }
 

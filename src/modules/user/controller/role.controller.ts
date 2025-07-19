@@ -2,7 +2,7 @@
 import { Body, Controller, Inject, Post, Req, UsePipes, ValidationPipe } from "@nestjs/common";
 import { RoleService } from "../services/role.service";
 import { Role } from "../entities/role.entity";
-import { ZtBaseResDto } from "../../../utils/baseRes.dto";
+import { BaseResponseDto } from "../../../utils/baseRes.dto";
 import { FindByUsernameReqDto } from "../dto/req/find-by-username-req.dto";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { UpdateRoleDto } from "../dto/req/create-update-role.dto";
@@ -36,8 +36,8 @@ export class RoleController {
 
   @Post("findAllByPage")
   @ApiOperation({ summary: "查找所有角色，用于分页" })
-  @ApiResponse({ status: 200, description: "返回所有角色数量。", type: ZtBaseResDto })
-  async findAllByPage(@Body() filter: FindByUsernameReqDto, @Req() req: Request): Promise<ZtBaseResDto> {
+  @ApiResponse({ status: 200, description: "返回所有角色数量。", type: BaseResponseDto })
+  async findAllByPage(@Body() filter: FindByUsernameReqDto, @Req() req: Request): Promise<BaseResponseDto> {
     return await this.roleService.findCount(filter);
   }
 

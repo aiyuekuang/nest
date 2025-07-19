@@ -1,15 +1,16 @@
 // src/modules/auth/auth.service.ts
-import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
-import { UserService } from "../../user/services/user.service";
-import { MailerService } from "@nestjs-modules/mailer";
-import { Cache, CACHE_MANAGER } from "@nestjs/cache-manager";
-import { LoginDto } from "../dto/req/login.dto";
-import { User } from "../../user/entities/user.entity";
-import { decrypt, getAuthToken } from "../../../utils/common";
-import config from "../../../config";
-import { UpdateUserReqDto } from "../../user/dto/req/update-user-req.dto";
-import { reqUser } from "../../../utils/nameSpace";
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { MailerService } from '@nestjs-modules/mailer';
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
+
+import config from '../../../config';
+import { decrypt, getAuthToken } from '../../../utils/common';
+import { reqUser } from '../../../utils/nameSpace';
+import { UserService } from '../../user/services/user.service';
+import { UpdateUserReqDto } from '../../user/dto/req/update-user-req.dto';
+import { User } from '../../user/entities/user.entity';
+import { LoginDto } from '../dto/req/login.dto';
 
 @Injectable()
 export class AuthService {

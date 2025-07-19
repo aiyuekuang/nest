@@ -19,7 +19,7 @@ class Sort {
 /**
  * 基础实体类，包含分页和排序字段。
  * */
-export class ZtBaseReqDto {
+export class BaseRequestDto {
   /**
    * 当前页码。
    *

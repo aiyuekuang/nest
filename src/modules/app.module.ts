@@ -12,8 +12,8 @@ import { ResponseInterceptor } from '../interceptor/response.interceptor';
 import { LoggerModule } from '../logger/logger.module';
 import { AuthGuard } from '../guard/authGuard';
 import { AuthModule } from './auth/auth.module';
-import { UserService } from './user/services/user.service';
 import { UserModule } from './user/user.module';
+import { CommonModule } from '../common/common.module';
 
 @Module({
   imports: [
@@ -61,6 +61,7 @@ import { UserModule } from './user/user.module';
     TypeOrmModule.forRoot(configuration().database),
     LoggerModule,
     AuthModule,
+    CommonModule,
   ],
   providers: [
     AuthGuard,

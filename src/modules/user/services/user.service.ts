@@ -4,8 +4,12 @@ import { Injectable } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 
 import { LoggerService } from '../../../logger/logger.service';
-import { BaseResponseDto } from '../../../utils/baseRes.dto';
-import { filterData } from '../../../utils/common';
+import { BaseService } from '../../../common/base/base.service';
+import { PaginationService } from '../../../common/services/pagination.service';
+import { PermissionService } from '../../../common/services/permission.service';
+import { CacheService } from '../../../common/services/cache.service';
+import { ApiResponseDto } from '../../../common/dto/api-response.dto';
+import { NotFoundException } from '../../../common/exceptions/custom.exception';
 import { LoginDto } from '../../auth/dto/req/login.dto';
 import { CreateUserReqDto } from '../dto/req/create-user-req.dto';
 import { UpdateUserReqDto } from '../dto/req/update-user-req.dto';
@@ -17,17 +21,21 @@ import { Role } from '../entities/role.entity';
 import { Permission } from '../entities/permission.entity';
 
 @Injectable()
-export class UserService {
+export class UserService extends BaseService<User> {
   constructor(
     @InjectRepository(User)
-    private readonly user: Repository<User>,
+    private readonly userRepository: Repository<User>,
     private readonly logger: LoggerService,
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
     @InjectRepository(Permission)
     private readonly permissionRepository: Repository<Permission>,
-    @InjectDataSource() private dataSource: DataSource
+    @InjectDataSource() private dataSource: DataSource,
+    private readonly paginationService: PaginationService,
+    private readonly permissionService: PermissionService,
+    private readonly cacheService: CacheService
   ) {
+    super(userRepository);
     this.permissionRepository = this.dataSource.getTreeRepository(Permission);
   }
 
@@ -38,10 +46,17 @@ export class UserService {
    */
   async create(createUserReqDto: CreateUserReqDto): Promise<void> {
     const { rolesId } = createUserReqDto;
+    
+    // 检查用户名是否已存在
+    const existingUser = await this.findByUsername(createUserReqDto.username);
+    if (existingUser) {
+      throw new ConflictException('用户名已存在');
+    }
+
     // 保存用户到数据库
-    await this.user.save({
+    await this.userRepository.save({
       ...createUserReqDto,
-      roles: rolesId.map(roleId => ({ id: roleId }))
+      roles: rolesId?.map(roleId => ({ id: roleId })) || []
     });
   }
 
@@ -51,7 +66,7 @@ export class UserService {
    * @returns 符合过滤条件的用户列表
    */
   async findAll(filter?: FindByUsernameReqDto): Promise<User[]> {
-    return this.user.find({ where: filter });
+    return this.userRepository.find({ where: filter });
   }
 
   /**
@@ -59,44 +74,28 @@ export class UserService {
    * @param filter - 可选过滤条件
    * @returns 符合过滤条件的用户列表
    */
-  async findCount(filter?: FindByUsernameReqDto): Promise<BaseResponseDto> {
-    const { pageIndex = 1, pageSize = 10, sort } = filter;
+  async findCount(filter?: FindByUsernameReqDto): Promise<ApiResponseDto<any>> {
+    const result = await this.paginationService.paginate(
+      this.userRepository,
+      filter,
+      {
+        pageIndex: filter?.pageIndex,
+        pageSize: filter?.pageSize,
+        sortBy: filter?.sort?.sortBy || 'createdAt',
+        sortOrder: filter?.sort?.sortOrder || 'descend'
+      },
+      ['roles']
+    );
 
-    // 默认排序配置
-    const defaultSort = { sortBy: "createdAt", sortOrder: "descend" };
-
-    // 如果 sort 为 null，则使用默认排序
-    const sortConfig = sort || defaultSort;
-
-    // 通过this.user查询当前排序字段是否是字符串或者数字类型
-    const metadata = this.user.metadata;
-    const column = await metadata.findColumnWithPropertyName(sortConfig.sortBy);
-    if (!column) {
-      throw new Error(`排序字段 ${sortConfig.sortBy} 不是排序字段`);
+    // 获取用户权限
+    for (const user of result.data) {
+      if (user.roles && user.roles.length > 0) {
+        user.permissions = await this.permissionService.findPermissionsByRoles(user.roles);
+      }
     }
 
-    // 构建排序对象
-    const order = {
-      [sortConfig.sortBy]: sortConfig.sortOrder === "descend" ? "DESC" : "ASC"
-    };
-
-    const res = await this.user.findAndCount({
-      where: { ...filterData(filter, FindUserReqDto) },
-      skip: (pageIndex - 1) * pageSize,
-      take: pageSize,
-      order: order
-    });
-
-    // 获取用户之后，将用户的角色查出来
-    const users: User[] = res[0];
-    for (const user of users) {
-      const roles = await this.findRolesByUserId(user.id);
-      user.roles = roles.roles;
-    }
-
-    return new BaseResponseDto(filter, res, UserResDto);
+    return this.paginationService.createPaginatedResponse(result, UserResDto);
   }
-
 
   /**
    * 通过 ID 查找用户
@@ -104,7 +103,21 @@ export class UserService {
    * @returns 具有指定 ID 的用户
    */
   async findOne(id: string): Promise<User> {
-    return this.user.findOne({ where: { id } });
+    const user = await this.userRepository.findOne({ 
+      where: { id },
+      relations: ['roles']
+    });
+    
+    if (!user) {
+      throw new NotFoundException('用户不存在');
+    }
+
+    // 获取用户权限
+    if (user.roles && user.roles.length > 0) {
+      user.permissions = await this.permissionService.findPermissionsByRoles(user.roles);
+    }
+
+    return user;
   }
 
   /**
@@ -113,7 +126,10 @@ export class UserService {
    * @returns 具有指定用户名的用户
    */
   async findByUsername(username: string): Promise<User> {
-    return this.user.findOne({ where: { username } });
+    return this.userRepository.findOne({ 
+      where: { username },
+      relations: ['roles']
+    });
   }
 
   /**
@@ -122,7 +138,10 @@ export class UserService {
    * @returns 具有指定用户名的用户
    */
   async findByUsernameWithPassword(username: string): Promise<User> {
-    return this.user.findOne({ where: { username }, select: ["password"] });
+    return this.userRepository.findOne({ 
+      where: { username }, 
+      select: ["password"] 
+    });
   }
 
   /**
@@ -131,7 +150,15 @@ export class UserService {
    * @param updateUserReqDto - 包含更新用户详细信息的 DTO
    */
   async update(id: string, updateUserReqDto: UpdateUserReqDto): Promise<void> {
-    await this.user.update(id, updateUserReqDto);
+    const user = await this.findOne(id);
+    if (!user) {
+      throw new NotFoundException('用户不存在');
+    }
+
+    await this.userRepository.update(id, updateUserReqDto);
+    
+    // 清除用户权限缓存
+    await this.permissionService.clearUserPermissionCache(id);
   }
 
   /**
@@ -141,15 +168,20 @@ export class UserService {
   async updateUser(createUserReqDto: CreateUserReqDto): Promise<void> {
     const { id, rolesId } = createUserReqDto;
 
+    const user = await this.findOne(id);
+    if (!user) {
+      throw new NotFoundException('用户不存在');
+    }
 
     // 更新用户到数据库，解决Cannot query across many-to-many for property roles
-    await this.user.save({
+    await this.userRepository.save({
       ...createUserReqDto,
-      roles: rolesId.map(roleId => ({ id: roleId }))
+      roles: rolesId?.map(roleId => ({ id: roleId })) || []
     });
 
+    // 清除用户权限缓存
+    await this.permissionService.clearUserPermissionCache(id);
   }
-
 
   /**
    * 通过 ID 删除用户,或者接收一个ids数组，删除多个用户
@@ -158,10 +190,16 @@ export class UserService {
   async remove(idOrIds: string | string[]): Promise<void> {
     if (Array.isArray(idOrIds)) {
       // 如果是数组，则使用 In 条件删除多个用户
-      await this.user.delete({ id: In(idOrIds) });
+      await this.userRepository.delete({ id: In(idOrIds) });
+      
+      // 清除所有相关用户的权限缓存
+      for (const id of idOrIds) {
+        await this.permissionService.clearUserPermissionCache(id);
+      }
     } else {
       // 如果是单个 ID，则直接删除该用户
-      await this.user.delete(idOrIds);
+      await this.userRepository.delete(idOrIds);
+      await this.permissionService.clearUserPermissionCache(idOrIds);
     }
   }
 
@@ -171,54 +209,36 @@ export class UserService {
    * @param loginDto
    */
   async findByUsernameAndPassword(loginDto: LoginDto): Promise<User> {
-    return this.user.findOne({ where: loginDto });
+    return this.userRepository.findOne({ where: loginDto });
   }
 
+  /**
+   * 通过邮箱查找用户
+   * @param email 邮箱
+   * @returns 用户
+   */
   async findByEmail(email: string): Promise<User> {
-    return this.user.findOne({ where: { email } });
+    return this.userRepository.findOne({ where: { email } });
   }
 
-  // 通过用户id查找用户所有的角色
+  /**
+   * 通过用户id查找用户所有的角色
+   * @param userId 用户ID
+   * @returns 用户及其角色
+   */
   async findRolesByUserId(userId: string): Promise<User> {
-    return this.user.findOne({ where: { id: userId }, relations: ["roles"] });
+    return this.userRepository.findOne({ 
+      where: { id: userId }, 
+      relations: ["roles"] 
+    });
   }
 
-
-  //   通过所有角色查找所有的权限，并去重
+  /**
+   * 通过所有角色查找所有的权限，并去重
+   * @param roles 角色数组
+   * @returns 权限标识符数组
+   */
   async findPermissionsByRoles(roles: Role[]): Promise<string[]> {
-    // 获取所有角色的ID数组
-    const roleIds = roles.map(role => role.id);
-
-    // 获取所有角色及其关联的权限
-    const rolePermissions = await this.roleRepository
-      .createQueryBuilder("role")
-      .leftJoinAndSelect("role.permissions", "permission")
-      .where("role.id IN (:...roleIds)", { roleIds })
-      .getMany();
-
-    // 提取所有权限的ID数组
-    const permissionIds = rolePermissions
-      .flatMap(role => role.permissions)
-      .map(permission => permission.id);
-
-    // 如果没有权限ID，返回空数组
-    if (permissionIds.length === 0) {
-      return [];
-    }
-
-    // 使用递归CTE查询所有权限及其子权限
-    const query = `
-        WITH RECURSIVE permission_tree AS (
-          SELECT * FROM permission WHERE id IN (${permissionIds.map(id => `'${id}'`).join(",")})
-          UNION ALL
-          SELECT p.* FROM permission p
-          INNER JOIN permission_tree pt ON pt.id = p.parentId
-        )
-        SELECT DISTINCT id, name, sign FROM permission_tree
-        `;
-
-    // 执行查询，获取所有权限
-    // 返回权限的标识符数组
-    return await this.dataSource.query(query);
+    return this.permissionService.findPermissionsByRoles(roles);
   }
 }

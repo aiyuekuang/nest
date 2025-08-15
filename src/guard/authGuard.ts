@@ -1,24 +1,22 @@
-import { CanActivate, ExecutionContext, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Inject, Injectable } from '@nestjs/common';
 import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
 import { Reflector } from '@nestjs/core';
 
 import { SKIP_AUTH_KEY } from '../decorators/skip-auth.decorator';
-import { getAuthToken } from '../utils/common';
+import { CacheService } from '../common/services/cache.service';
+import { UnauthorizedException } from '../common/exceptions/custom.exception';
 import { reqUser } from '../utils/nameSpace';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
-    private configService: ConfigService, // 注入配置服务，用于获取配置
-    @Inject(CACHE_MANAGER) private cache: Cache, // 注入缓存管理器���用于处理缓存
-    private reflector: Reflector, // 注入 Reflector 服务
+    private configService: ConfigService,
+    private readonly cacheService: CacheService,
+    private reflector: Reflector,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-
     const skipAuth = this.reflector.getAllAndOverride<boolean>(SKIP_AUTH_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -28,36 +26,49 @@ export class AuthGuard implements CanActivate {
       return true; // 如果存在 SkipAuth 装饰器，跳过验证
     }
 
-    const http = context.switchToHttp(); // 获取HTTP上下文
-    const request = http.getRequest<Request>(); // 获取请求对象
+    const http = context.switchToHttp();
+    const request = http.getRequest<Request>();
 
-    // 💡 在这里我们将 payload 挂载到请求对象上
-    // 以便我们可以在路由处理器中访问它
-    request[reqUser] = await this.getUser(request); // 获取用户信息并挂载到请求对象上
+    // 获取用户信息并挂载到请求对象上
+    request[reqUser] = await this.getUser(request);
 
-    return true; // 返回true，允许请求通过
+    return true;
   }
 
-  public async getUser(request: Request) {
-    const user = await this.extractTokenFromHeader(request); // 从请求头中提取token
+  /**
+   * 获取用户信息
+   * @param request 请求对象
+   * @returns 用户信息
+   */
+  public async getUser(request: Request): Promise<any> {
+    const user = await this.extractTokenFromHeader(request);
 
     if (!user) {
-      throw new UnauthorizedException('请先登陆'); // 如果没有token，抛出未授权异常
+      throw new UnauthorizedException('请先登录');
     }
 
-    try {
-      // 验证JWT token
-      return user;
-    } catch {
-      throw new UnauthorizedException('请先登陆'); // 如果验证失败，抛出未授权异常
-    }
+    return user;
   }
 
-  private async extractTokenFromHeader(request: Request): Promise<string> {
+  /**
+   * 从请求头中提取token并获取用户信息
+   * @param request 请求对象
+   * @returns 用户信息
+   */
+  private async extractTokenFromHeader(request: Request): Promise<any> {
+    const [type, tokenStr] = request.headers.authorization?.split(' ') ?? [];
 
-    let key = await getAuthToken(request, this.cache);
-    if (key) {
-      return await this.cache.get(key); // 返回用户信息
+    if (type !== 'Bearer' || !tokenStr) {
+      return null;
     }
+
+    const tokenKey = `${tokenStr}-*`;
+    const userKeys = await this.cacheService.keys(tokenKey);
+
+    if (userKeys && userKeys.length > 0) {
+      return await this.cacheService.get(userKeys[0]);
+    }
+
+    return null;
   }
 }

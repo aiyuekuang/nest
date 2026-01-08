@@ -27,7 +27,7 @@ export class AuthController {
   @Post('logout')
   @ApiOperation({ summary: '用户登出' })
   @ApiResponse({ status: 201, description: '用户登出成功。' })
-  async logout(@Req() req) {
+  async logout(@Req() req: any) {
     // 调用 AuthService 的 logout 方法进行用户登出
     return this.authService.logout(req);
   }
@@ -54,7 +54,7 @@ export class AuthController {
   @Post('changePassword')
   @ApiOperation({ summary: '网页中修改密码' })
   @ApiResponse({ status: 201, description: '密码修改成功。' })
-  async changePassword(@Body() resetPasswordDto: OldPasswordDto, @Req() req) {
+  async changePassword(@Body() resetPasswordDto: OldPasswordDto, @Req() req: any) {
     // 获取用户信息
     const user = req[reqUser];
     // 调用 AuthService 的 resetPassword 方法进行密码修改

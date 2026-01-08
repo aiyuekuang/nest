@@ -1,8 +1,10 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Request } from 'express';
 
-import { PERMISSIONS_KEY, ROLES_KEY } from '../decorators/permissions.decorator';
+import {
+  PERMISSIONS_KEY,
+  ROLES_KEY,
+} from '../decorators/permissions.decorator';
 import { PermissionService } from '../services/permission.service';
 import { ForbiddenException } from '../exceptions/custom.exception';
 import { reqUser } from '../../utils/nameSpace';
@@ -15,10 +17,9 @@ export class PermissionGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const requiredPermissions = this.reflector.getAllAndOverride<string[] | any>(
-      PERMISSIONS_KEY,
-      [context.getHandler(), context.getClass()],
-    );
+    const requiredPermissions = this.reflector.getAllAndOverride<
+      string[] | any
+    >(PERMISSIONS_KEY, [context.getHandler(), context.getClass()]);
 
     const requiredRoles = this.reflector.getAllAndOverride<string[]>(
       ROLES_KEY,
@@ -30,7 +31,7 @@ export class PermissionGuard implements CanActivate {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest<Request>();
+    const request = context.switchToHttp().getRequest<any>();
     const user = request[reqUser];
 
     if (!user) {
@@ -39,7 +40,10 @@ export class PermissionGuard implements CanActivate {
 
     // 检查角色权限
     if (requiredRoles && requiredRoles.length > 0) {
-      const hasRole = await this.permissionService.hasRole(user.id, requiredRoles[0]);
+      const hasRole = await this.permissionService.hasRole(
+        user.id,
+        requiredRoles[0],
+      );
       if (!hasRole) {
         throw new ForbiddenException('角色权限不足');
       }
@@ -50,20 +54,19 @@ export class PermissionGuard implements CanActivate {
       // 如果是对象格式（任意权限或所有权限）
       if (typeof requiredPermissions === 'object' && requiredPermissions.type) {
         const { type, permissions } = requiredPermissions;
-        
+
         if (type === 'any') {
-          const hasAnyPermission = await this.permissionService.hasAnyPermission(
-            user.id,
-            permissions
-          );
+          const hasAnyPermission =
+            await this.permissionService.hasAnyPermission(user.id, permissions);
           if (!hasAnyPermission) {
             throw new ForbiddenException('权限不足');
           }
         } else if (type === 'all') {
-          const hasAllPermissions = await this.permissionService.hasAllPermissions(
-            user.id,
-            permissions
-          );
+          const hasAllPermissions =
+            await this.permissionService.hasAllPermissions(
+              user.id,
+              permissions,
+            );
           if (!hasAllPermissions) {
             throw new ForbiddenException('权限不足');
           }
@@ -72,7 +75,7 @@ export class PermissionGuard implements CanActivate {
         // 默认检查任意一个权限
         const hasAnyPermission = await this.permissionService.hasAnyPermission(
           user.id,
-          requiredPermissions
+          requiredPermissions,
         );
         if (!hasAnyPermission) {
           throw new ForbiddenException('权限不足');

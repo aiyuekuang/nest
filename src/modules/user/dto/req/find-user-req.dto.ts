@@ -1,15 +1,19 @@
 // src/modules/user/dto/req/find-user-req.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsOptional, IsString } from "class-validator";
+import { IsArray, IsOptional, IsString } from 'class-validator';
 
 export class FindUserReqDto {
   @ApiProperty({ required: false, description: '用户id', example: '1' })
   @IsString()
   @IsOptional()
-  id: string;
+  id!: string;
 
-  @ApiProperty({ required: false, description: '用户id数组', example: ['1', '2'] })
+  @ApiProperty({
+    required: false,
+    description: '用户id数组',
+    example: ['1', '2'],
+  })
   @IsArray()
   @IsOptional()
-  idList: string[];
+  idList!: string[];
 }

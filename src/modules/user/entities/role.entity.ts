@@ -1,5 +1,10 @@
 // entities/role.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, JoinTable } from 'typeorm';
+import {
+  Entity,
+  Column,
+  ManyToMany,
+  JoinTable,
+} from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 
 import { User } from './user.entity';
@@ -16,23 +21,23 @@ export class Role extends BaseEntity {
    */
   @ApiProperty({ example: 'Admin', description: '角色名称' })
   @Column()
-  name: string;
+  name!: string;
 
   /**
    * 角色描述。
    */
   @ApiProperty({ example: '管理员', description: '备注' })
   @Column({ nullable: true })
-  remark: string;
+  remark!: string;
 
   /**
    * 与用户实体的多对多关系。
    * 一个角色可以分配给多个用户。
    */
   @ApiProperty({ type: () => [User], description: '与用户实体的多对多关系' })
-  @ManyToMany(() => User, user => user.roles)
+  @ManyToMany(() => User, (user) => user.roles)
   @JoinTable()
-  users: User[];
+  users!: User[];
 
   /**
    * 是否启用
@@ -41,14 +46,17 @@ export class Role extends BaseEntity {
    */
   @ApiProperty({ example: '1', description: '是否启用' })
   @Column({ default: '1' })
-  status: string;
+  status!: string;
 
   /**
    * 与权限实体的多对多关系。
    * 一个角色可以有多个权限，类型是字符串数组。
    */
-  @ApiProperty({ type: () => [Permission], description: '与权限实体的多对多关系' })
+  @ApiProperty({
+    type: () => [Permission],
+    description: '与权限实体的多对多关系',
+  })
   @ManyToMany(() => Permission, (permission) => permission.roles)
   @JoinTable()
-  permissions: Permission[];
+  permissions!: Permission[];
 }

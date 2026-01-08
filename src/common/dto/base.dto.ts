@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsUUID, IsDateString, IsString, IsNumber } from 'class-validator';
+import {
+  IsOptional,
+  IsUUID,
+  IsDateString,
+  IsString,
+  IsNumber,
+} from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export abstract class BaseDto {
@@ -39,7 +45,7 @@ export abstract class BaseCreateDto extends BaseDto {
 export abstract class BaseUpdateDto extends BaseDto {
   @ApiProperty({ required: true, description: '实体ID' })
   @IsUUID()
-  id: string;
+  id!: string;
 }
 
 export abstract class BaseQueryDto extends BaseDto {
@@ -55,7 +61,11 @@ export abstract class BaseQueryDto extends BaseDto {
   @Transform(({ value }) => parseInt(value))
   pageSize?: number = 10;
 
-  @ApiProperty({ required: false, description: '排序字段', example: 'createdAt' })
+  @ApiProperty({
+    required: false,
+    description: '排序字段',
+    example: 'createdAt',
+  })
   @IsOptional()
   @IsString()
   sortBy?: string = 'createdAt';

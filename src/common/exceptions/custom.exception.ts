@@ -8,7 +8,7 @@ export class CustomException extends HttpException {
         message,
         timestamp: new Date().toISOString(),
       },
-      statusCode
+      statusCode,
     );
   }
 }

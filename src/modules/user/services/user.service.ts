@@ -1,42 +1,34 @@
 // src/modules/user/service/user.service.ts
-import { DataSource, In, Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
-import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
-import { LoggerService } from '../../../logger/logger.service';
 import { BaseService } from '../../../common/base/base.service';
 import { PaginationService } from '../../../common/services/pagination.service';
 import { PermissionService } from '../../../common/services/permission.service';
-import { CacheService } from '../../../common/services/cache.service';
 import { ApiResponseDto } from '../../../common/dto/api-response.dto';
-import { NotFoundException } from '../../../common/exceptions/custom.exception';
+import {
+  NotFoundException,
+  ConflictException,
+} from '../../../common/exceptions/custom.exception';
+import { PasswordUtil } from '../../../utils/password.util';
 import { LoginDto } from '../../auth/dto/req/login.dto';
 import { CreateUserReqDto } from '../dto/req/create-user-req.dto';
 import { UpdateUserReqDto } from '../dto/req/update-user-req.dto';
 import { FindByUsernameReqDto } from '../dto/req/find-by-username-req.dto';
-import { FindUserReqDto } from '../dto/req/find-user-req.dto';
 import { UserResDto } from '../dto/res/user-res.dto';
 import { User } from '../entities/user.entity';
 import { Role } from '../entities/role.entity';
-import { Permission } from '../entities/permission.entity';
 
 @Injectable()
 export class UserService extends BaseService<User> {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    private readonly logger: LoggerService,
-    @InjectRepository(Role)
-    private readonly roleRepository: Repository<Role>,
-    @InjectRepository(Permission)
-    private readonly permissionRepository: Repository<Permission>,
-    @InjectDataSource() private dataSource: DataSource,
     private readonly paginationService: PaginationService,
     private readonly permissionService: PermissionService,
-    private readonly cacheService: CacheService
   ) {
     super(userRepository);
-    this.permissionRepository = this.dataSource.getTreeRepository(Permission);
   }
 
   /**
@@ -44,20 +36,34 @@ export class UserService extends BaseService<User> {
    * @param createUserReqDto - 包含用户创建详细信息的 DTO
    * @returns 创建的用户
    */
-  async create(createUserReqDto: CreateUserReqDto): Promise<void> {
-    const { rolesId } = createUserReqDto;
-    
+  async create(createUserReqDto: CreateUserReqDto): Promise<User> {
+    const { rolesId, password, username } = createUserReqDto;
+
+    if (!username) {
+      throw new ConflictException('用户名不能为空');
+    }
+
+    if (!password) {
+      throw new ConflictException('密码不能为空');
+    }
+
     // 检查用户名是否已存在
-    const existingUser = await this.findByUsername(createUserReqDto.username);
+    const existingUser = await this.findByUsername(username);
     if (existingUser) {
       throw new ConflictException('用户名已存在');
     }
 
+    // 使用bcrypt加密密码
+    const hashedPassword = await PasswordUtil.hash(password);
+
     // 保存用户到数据库
-    await this.userRepository.save({
+    const user = await this.userRepository.save({
       ...createUserReqDto,
-      roles: rolesId?.map(roleId => ({ id: roleId })) || []
+      password: hashedPassword,
+      roles: rolesId?.map((roleId) => ({ id: roleId })) || [],
     });
+
+    return user;
   }
 
   /**
@@ -82,15 +88,17 @@ export class UserService extends BaseService<User> {
         pageIndex: filter?.pageIndex,
         pageSize: filter?.pageSize,
         sortBy: filter?.sort?.sortBy || 'createdAt',
-        sortOrder: filter?.sort?.sortOrder || 'descend'
+        sortOrder: (filter?.sort?.sortOrder || 'descend') as 'ASC' | 'DESC' | 'ascend' | 'descend',
       },
-      ['roles']
+      ['roles'],
     );
 
     // 获取用户权限
     for (const user of result.data) {
       if (user.roles && user.roles.length > 0) {
-        user.permissions = await this.permissionService.findPermissionsByRoles(user.roles);
+        (user as any).permissions = await this.permissionService.findPermissionsByRoles(
+          user.roles,
+        );
       }
     }
 
@@ -103,18 +111,20 @@ export class UserService extends BaseService<User> {
    * @returns 具有指定 ID 的用户
    */
   async findOne(id: string): Promise<User> {
-    const user = await this.userRepository.findOne({ 
+    const user = await this.userRepository.findOne({
       where: { id },
-      relations: ['roles']
+      relations: ['roles'],
     });
-    
+
     if (!user) {
       throw new NotFoundException('用户不存在');
     }
 
     // 获取用户权限
     if (user.roles && user.roles.length > 0) {
-      user.permissions = await this.permissionService.findPermissionsByRoles(user.roles);
+      (user as any).permissions = await this.permissionService.findPermissionsByRoles(
+        user.roles,
+      );
     }
 
     return user;
@@ -125,10 +135,10 @@ export class UserService extends BaseService<User> {
    * @param username - 用户名
    * @returns 具有指定用户名的用户
    */
-  async findByUsername(username: string): Promise<User> {
-    return this.userRepository.findOne({ 
+  async findByUsername(username: string): Promise<User | null> {
+    return this.userRepository.findOne({
       where: { username },
-      relations: ['roles']
+      relations: ['roles'],
     });
   }
 
@@ -137,10 +147,10 @@ export class UserService extends BaseService<User> {
    * @param username - 用户名
    * @returns 具有指定用户名的用户
    */
-  async findByUsernameWithPassword(username: string): Promise<User> {
-    return this.userRepository.findOne({ 
-      where: { username }, 
-      select: ["password"] 
+  async findByUsernameWithPassword(username: string): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: { username },
+      select: ['password'],
     });
   }
 
@@ -156,7 +166,7 @@ export class UserService extends BaseService<User> {
     }
 
     await this.userRepository.update(id, updateUserReqDto);
-    
+
     // 清除用户权限缓存
     await this.permissionService.clearUserPermissionCache(id);
   }
@@ -168,6 +178,10 @@ export class UserService extends BaseService<User> {
   async updateUser(createUserReqDto: CreateUserReqDto): Promise<void> {
     const { id, rolesId } = createUserReqDto;
 
+    if (!id) {
+      throw new NotFoundException('用户ID不能为空');
+    }
+
     const user = await this.findOne(id);
     if (!user) {
       throw new NotFoundException('用户不存在');
@@ -176,7 +190,7 @@ export class UserService extends BaseService<User> {
     // 更新用户到数据库，解决Cannot query across many-to-many for property roles
     await this.userRepository.save({
       ...createUserReqDto,
-      roles: rolesId?.map(roleId => ({ id: roleId })) || []
+      roles: rolesId?.map((roleId) => ({ id: roleId })) || [],
     });
 
     // 清除用户权限缓存
@@ -191,7 +205,7 @@ export class UserService extends BaseService<User> {
     if (Array.isArray(idOrIds)) {
       // 如果是数组，则使用 In 条件删除多个用户
       await this.userRepository.delete({ id: In(idOrIds) });
-      
+
       // 清除所有相关用户的权限缓存
       for (const id of idOrIds) {
         await this.permissionService.clearUserPermissionCache(id);
@@ -208,7 +222,7 @@ export class UserService extends BaseService<User> {
    * @returns 具有指定用户名和密码的用户
    * @param loginDto
    */
-  async findByUsernameAndPassword(loginDto: LoginDto): Promise<User> {
+  async findByUsernameAndPassword(loginDto: LoginDto): Promise<User | null> {
     return this.userRepository.findOne({ where: loginDto });
   }
 
@@ -217,7 +231,7 @@ export class UserService extends BaseService<User> {
    * @param email 邮箱
    * @returns 用户
    */
-  async findByEmail(email: string): Promise<User> {
+  async findByEmail(email: string): Promise<User | null> {
     return this.userRepository.findOne({ where: { email } });
   }
 
@@ -226,10 +240,10 @@ export class UserService extends BaseService<User> {
    * @param userId 用户ID
    * @returns 用户及其角色
    */
-  async findRolesByUserId(userId: string): Promise<User> {
-    return this.userRepository.findOne({ 
-      where: { id: userId }, 
-      relations: ["roles"] 
+  async findRolesByUserId(userId: string): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['roles'],
     });
   }
 

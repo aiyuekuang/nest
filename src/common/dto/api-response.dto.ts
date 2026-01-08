@@ -54,18 +54,22 @@ export class ApiResponseDto<T = any> {
     total: number,
     pageIndex: number,
     pageSize: number,
-    message = '成功'
+    message = '成功',
   ): ApiResponseDto<{
     data: T[];
     total: number;
     pageIndex: number;
     pageSize: number;
   }> {
-    return new ApiResponseDto(200, {
-      data,
-      total,
-      pageIndex,
-      pageSize,
-    }, message);
+    return new ApiResponseDto(
+      200,
+      {
+        data,
+        total,
+        pageIndex,
+        pageSize,
+      },
+      message,
+    );
   }
 }

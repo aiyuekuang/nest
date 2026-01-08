@@ -1,17 +1,19 @@
-import { CanActivate, ExecutionContext, Inject, Injectable } from '@nestjs/common';
-import { Request } from 'express';
-import { ConfigService } from '@nestjs/config';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
 import { SKIP_AUTH_KEY } from '../decorators/skip-auth.decorator';
 import { CacheService } from '../common/services/cache.service';
 import { UnauthorizedException } from '../common/exceptions/custom.exception';
 import { reqUser } from '../utils/nameSpace';
+import { RequestContext } from '../common/context/request-context';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
-    private configService: ConfigService,
     private readonly cacheService: CacheService,
     private reflector: Reflector,
   ) {}
@@ -23,14 +25,20 @@ export class AuthGuard implements CanActivate {
     ]);
 
     if (skipAuth) {
-      return true; // 如果存在 SkipAuth 装饰器，跳过验证
+      return true;
     }
 
     const http = context.switchToHttp();
-    const request = http.getRequest<Request>();
+    const request = http.getRequest<any>();
 
-    // 获取用户信息并挂载到请求对象上
-    request[reqUser] = await this.getUser(request);
+    // 获取用户信息
+    const user = await this.getUser(request);
+    
+    // 挂载到请求对象
+    request[reqUser] = user;
+    
+    // 设置到请求上下文
+    RequestContext.setUser(user);
 
     return true;
   }
@@ -40,7 +48,7 @@ export class AuthGuard implements CanActivate {
    * @param request 请求对象
    * @returns 用户信息
    */
-  public async getUser(request: Request): Promise<any> {
+  public async getUser(request: any): Promise<any> {
     const user = await this.extractTokenFromHeader(request);
 
     if (!user) {
@@ -55,7 +63,7 @@ export class AuthGuard implements CanActivate {
    * @param request 请求对象
    * @returns 用户信息
    */
-  private async extractTokenFromHeader(request: Request): Promise<any> {
+  private async extractTokenFromHeader(request: any): Promise<any> {
     const [type, tokenStr] = request.headers.authorization?.split(' ') ?? [];
 
     if (type !== 'Bearer' || !tokenStr) {

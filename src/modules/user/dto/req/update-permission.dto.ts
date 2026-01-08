@@ -12,5 +12,5 @@ export class UpdatePermissionDto extends PartialType(CreatePermissionDto) {
    */
   @ApiProperty({ example: 'permission1', description: '权限ID' })
   @IsString()
-  id: string;
+  id!: string;
 }

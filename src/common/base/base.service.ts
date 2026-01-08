@@ -1,8 +1,8 @@
-import { Repository, In } from 'typeorm';
+import { Repository, In, ObjectLiteral } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export abstract class BaseService<T> {
+export abstract class BaseService<T extends ObjectLiteral> {
   constructor(protected readonly repository: Repository<T>) {}
 
   /**
@@ -28,7 +28,7 @@ export abstract class BaseService<T> {
    * @param id 实体ID
    * @returns 实体
    */
-  async findOne(id: string): Promise<T> {
+  async findOne(id: string): Promise<T | null> {
     return this.repository.findOne({ where: { id } as any });
   }
 

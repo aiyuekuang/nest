@@ -12,10 +12,7 @@ import { Permission } from './entities/permission.entity';
 import { CommonModule } from '../../common/common.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([User, Role, Permission]),
-    CommonModule,
-  ],
+  imports: [TypeOrmModule.forFeature([User, Role, Permission]), CommonModule],
   controllers: [UserController, RoleController, PermissionController],
   providers: [UserService, RoleService, PermissionService],
   exports: [UserService, RoleService, PermissionService],

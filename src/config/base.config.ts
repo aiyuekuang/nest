@@ -1,24 +1,30 @@
-import { IConfig } from "./type";
+import { IConfig } from './type';
 
 const config: IConfig = {
-
   // 项目URL的前缀
-  prefix: "nest",
+  prefix: process.env.API_PREFIX || 'nest',
+
+  // 密码加密配置
   password: {
-    secret: "zt_secret"
+    secret: process.env.PASSWORD_SECRET || 'zt_secret',
   },
+
+  // JWT配置
   jwt: {
-    secret: "zt_secret",
-    expiresIn: "1d"
+    secret: process.env.JWT_SECRET || 'change_this_in_production_min_32_chars',
+    expiresIn: process.env.JWT_EXPIRES_IN || '1d',
   },
+
+  // 邮件配置
   mail: {
-    host: "smtp.qq.com",
-    port: 465,
+    host: process.env.MAIL_HOST || 'smtp.qq.com',
+    port: parseInt(process.env.MAIL_PORT || '465', 10),
     secure: true,
     auth: {
-      user: "2092186738@qq.com",
-      pass: "xxlxzxonfccrebgf", // 授权码,不是邮箱密码
-    }
-  }
-}
-  export default config;
+      user: process.env.MAIL_USER || '',
+      pass: process.env.MAIL_PASSWORD || '', // 授权码,不是邮箱密码
+    },
+  },
+};
+
+export default config;

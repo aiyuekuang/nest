@@ -1,45 +1,44 @@
 // src/modules/user/dto/req/create-user-req.dto.ts
-import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { ApiProperty } from '@nestjs/swagger';
+import { IsArray, IsOptional, IsString } from 'class-validator';
 
 export class CreateUserReqDto {
-  @ApiProperty({ required: false, example: "张三" })
+  @ApiProperty({ required: false, example: '张三' })
   @IsString()
   @IsOptional()
   id?: string;
 
-  @ApiProperty({ required: true, example: "username" })
+  @ApiProperty({ required: true, example: 'username' })
   @IsString()
   @IsOptional()
   username?: string;
 
-  @ApiProperty({ required: false, example: "password" })
+  @ApiProperty({ required: false, example: 'password' })
   @IsString()
   @IsOptional()
-  password?: string = "U2FsdGVkX18CNyzk9H7wvLnoFT0TLGLOQoyyySthwgo=";
+  password?: string = 'U2FsdGVkX18CNyzk9H7wvLnoFT0TLGLOQoyyySthwgo=';
 
-  @ApiProperty({ required: false, example: "1111@qq.com" })
+  @ApiProperty({ required: false, example: '1111@qq.com' })
   @IsString()
   @IsOptional()
   email?: string;
 
-  @ApiProperty({ required: false, example: "13888888888" })
+  @ApiProperty({ required: false, example: '13888888888' })
   @IsString()
   @IsOptional()
   tel?: string;
 
-  @ApiProperty({ required: false, example: "1" })
+  @ApiProperty({ required: false, example: '1' })
   @IsString()
   @IsOptional()
   status?: string;
 
-  @ApiProperty({ required: false, example: "1" })
+  @ApiProperty({ required: false, example: '1' })
   @IsArray()
   @IsOptional()
   rolesId?: string[];
 
-  @ApiProperty({ required: false, example: "张三" })
+  @ApiProperty({ required: false, example: '张三' })
   @IsString()
-  nickname: string;
-
+  nickname!: string;
 }

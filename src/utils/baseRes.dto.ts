@@ -31,8 +31,8 @@ export class BaseResponseDto {
     this.pageIndex = pageIndex;
     this.total = total;
     this.pageSize = pageSize;
-    this.data = data.map((data2)=>{
-      return new Dto(data2)
+    this.data = data.map((data2: any) => {
+      return new Dto(data2);
     });
   }
 }

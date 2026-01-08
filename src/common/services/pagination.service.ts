@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Repository, SelectQueryBuilder } from 'typeorm';
-import { BaseQueryDto } from '../dto/base.dto';
+import { Repository, SelectQueryBuilder, ObjectLiteral } from 'typeorm';
 import { ApiResponseDto } from '../dto/api-response.dto';
 
 export interface PaginationOptions {
@@ -27,17 +26,23 @@ export class PaginationService {
    * @param relations 关联关系
    * @returns 分页结果
    */
-  async paginate<T>(
+  async paginate<T extends ObjectLiteral>(
     repository: Repository<T>,
     filter: any = {},
     options: PaginationOptions = {},
-    relations: string[] = []
+    relations: string[] = [],
   ): Promise<PaginationResult<T>> {
-    const { pageIndex = 1, pageSize = 10, sortBy = 'createdAt', sortOrder = 'descend' } = options;
+    const {
+      pageIndex = 1,
+      pageSize = 10,
+      sortBy = 'createdAt',
+      sortOrder = 'descend',
+    } = options;
 
     // 构建排序对象
     const order = {
-      [sortBy]: sortOrder === 'descend' || sortOrder === 'DESC' ? 'DESC' : 'ASC'
+      [sortBy]:
+        sortOrder === 'descend' || sortOrder === 'DESC' ? 'DESC' : 'ASC',
     } as any;
 
     // 执行查询
@@ -46,14 +51,14 @@ export class PaginationService {
       skip: (pageIndex - 1) * pageSize,
       take: pageSize,
       order,
-      relations
+      relations,
     });
 
     return {
       data,
       total,
       pageIndex,
-      pageSize
+      pageSize,
     };
   }
 
@@ -63,14 +68,20 @@ export class PaginationService {
    * @param options 分页选项
    * @returns 分页结果
    */
-  async paginateWithQueryBuilder<T>(
+  async paginateWithQueryBuilder<T extends ObjectLiteral>(
     queryBuilder: SelectQueryBuilder<T>,
-    options: PaginationOptions = {}
+    options: PaginationOptions = {},
   ): Promise<PaginationResult<T>> {
-    const { pageIndex = 1, pageSize = 10, sortBy = 'createdAt', sortOrder = 'descend' } = options;
+    const {
+      pageIndex = 1,
+      pageSize = 10,
+      sortBy = 'createdAt',
+      sortOrder = 'descend',
+    } = options;
 
     // 添加排序
-    const orderDirection = sortOrder === 'descend' || sortOrder === 'DESC' ? 'DESC' : 'ASC';
+    const orderDirection =
+      sortOrder === 'descend' || sortOrder === 'DESC' ? 'DESC' : 'ASC';
     queryBuilder.orderBy(`${queryBuilder.alias}.${sortBy}`, orderDirection);
 
     // 添加分页
@@ -83,7 +94,7 @@ export class PaginationService {
       data,
       total,
       pageIndex,
-      pageSize
+      pageSize,
     };
   }
 
@@ -107,21 +118,21 @@ export class PaginationService {
   createPaginatedResponse<T, DTO>(
     result: PaginationResult<T>,
     dtoClass: new (data: T) => DTO,
-    message = '查询成功'
+    message = '查询成功',
   ): ApiResponseDto<{
     data: DTO[];
     total: number;
     pageIndex: number;
     pageSize: number;
   }> {
-    const dtoData = result.data.map(item => new dtoClass(item));
-    
+    const dtoData = result.data.map((item) => new dtoClass(item));
+
     return ApiResponseDto.paginate(
       dtoData,
       result.total,
       result.pageIndex,
       result.pageSize,
-      message
+      message,
     );
   }
 }

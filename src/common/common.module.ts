@@ -9,9 +9,7 @@ import { PermissionService } from './services/permission.service';
 import { PermissionGuard } from './guards/permission.guard';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([User, Role, Permission]),
-  ],
+  imports: [TypeOrmModule.forFeature([User, Role, Permission])],
   providers: [
     PaginationService,
     CacheService,

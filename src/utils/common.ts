@@ -31,7 +31,11 @@ export function decrypt(ciphertext: string, secretKey: string): string {
  * @param isAll - 是否获取所有token，是就是数组，否就是字符串
  * @returns token字符串。
  */
-export async function getAuthToken(req: any, cache: any, isAll = false): Promise<any> {
+export async function getAuthToken(
+  req: any,
+  cache: any,
+  isAll = false,
+): Promise<any> {
   const [type, tokenStr] = req.headers.authorization?.split(' ') ?? []; // 从请求头中提取token类型和token字符串
   let tokenKey = `${tokenStr}-*`;
 
@@ -59,12 +63,16 @@ export async function getAuthToken(req: any, cache: any, isAll = false): Promise
  * @param name
  * @returns token字符串。
  */
-export async function getUserToken(cache: any, user: string[] = [], name = 'username'): Promise<any[]> {
-  let userKeys = [];
+export async function getUserToken(
+  cache: any,
+  user: string[] = [],
+  name = 'username',
+): Promise<any[] | undefined> {
+  let userKeys: any[] = [];
 
   if (user && user.length) {
     for (const pattern of user) {
-      let tokenKey = `*-${pattern[name]}`;
+      let tokenKey = `*-${(pattern as any)[name]}`;
       const keys = await cache.store.keys(tokenKey);
       userKeys = userKeys.concat(keys);
     }
@@ -97,8 +105,7 @@ export function buildTree(data: any[], parentId: string = '0'): any[] {
  * @example
  */
 export function filterData(filter: any, dto: any) {
-  const { pageIndex = 1, pageSize = 10, status } = filter;
-  let obj = {};
+  let obj: any = {};
   for (let key in dto) {
     if (filter[key] !== undefined) {
       obj[key] = filter[key];

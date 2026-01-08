@@ -1,14 +1,13 @@
-import { Body, Controller, Post, Param, Delete } from '@nestjs/common';
+import { Body, Post, Param, Delete } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { BaseService } from './base.service';
 import { BaseRequestDto } from '../../utils/baseReq.dto';
-import { BaseResponseDto } from '../../utils/baseRes.dto';
 
 @ApiTags('base')
-export abstract class BaseController<T, CreateDto, UpdateDto, ResponseDto> {
+export abstract class BaseController<CreateDto, UpdateDto, ResponseDto> {
   constructor(
-    protected readonly baseService: BaseService<T>,
-    protected readonly responseDtoClass: new (data: any) => ResponseDto
+    protected readonly baseService: BaseService<any>,
+    protected readonly responseDtoClass: new (data: any) => ResponseDto,
   ) {}
 
   /**
@@ -18,7 +17,7 @@ export abstract class BaseController<T, CreateDto, UpdateDto, ResponseDto> {
   @Post('create')
   @ApiOperation({ summary: '创建实体' })
   @ApiResponse({ status: 201, description: '实体已成功创建。' })
-  async create(@Body() createDto: CreateDto): Promise<void> {
+  async create(@Body() createDto: CreateDto): Promise<any> {
     return await this.baseService.create(createDto);
   }
 
@@ -32,7 +31,7 @@ export abstract class BaseController<T, CreateDto, UpdateDto, ResponseDto> {
   @ApiResponse({ status: 200, description: '返回所有实体。' })
   async findAll(@Body() filter: BaseRequestDto): Promise<ResponseDto[]> {
     const entities = await this.baseService.findAll(filter);
-    return entities.map(entity => new this.responseDtoClass(entity));
+    return entities.map((entity) => new this.responseDtoClass(entity));
   }
 
   /**
@@ -56,7 +55,10 @@ export abstract class BaseController<T, CreateDto, UpdateDto, ResponseDto> {
   @Post('update/:id')
   @ApiOperation({ summary: '更新实体' })
   @ApiResponse({ status: 200, description: '实体已成功更新。' })
-  async update(@Param('id') id: string, @Body() updateDto: UpdateDto): Promise<void> {
+  async update(
+    @Param('id') id: string,
+    @Body() updateDto: UpdateDto,
+  ): Promise<void> {
     return await this.baseService.update(id, updateDto);
   }
 

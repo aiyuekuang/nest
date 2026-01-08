@@ -1,9 +1,12 @@
 // src/modules/user/controller/permission.controller.ts
-import { Controller, Post, Body, UsePipes, ValidationPipe } from "@nestjs/common";
+import {
+  Controller,
+  Post,
+  Body,
+} from '@nestjs/common';
 import { PermissionService } from '../services/permission.service';
 import { Permission } from '../entities/permission.entity';
-import { CreatePermissionDto } from "../dto/req/create-permission.dto";
-import { UpdatePermissionDto } from "../dto/req/update-permission.dto";
+import { CreatePermissionDto } from '../dto/req/create-permission.dto';
 
 @Controller('permissions')
 export class PermissionController {
@@ -34,7 +37,7 @@ export class PermissionController {
    * @returns 查找到的权限实体
    */
   @Post('findOne')
-  async findOne(@Body('id') id: string): Promise<Permission> {
+  async findOne(@Body('id') id: string): Promise<Permission | null> {
     return this.permissionService.findOne(id);
   }
 
@@ -44,7 +47,10 @@ export class PermissionController {
    * @param permission - 部分更新的权限实体
    */
   @Post('update')
-  async update(@Body('id') id: string, @Body() permission: CreatePermissionDto): Promise<void> {
+  async update(
+    @Body('id') id: string,
+    @Body() permission: CreatePermissionDto,
+  ): Promise<void> {
     return this.permissionService.update(id, permission);
   }
 

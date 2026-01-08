@@ -9,17 +9,15 @@ import { Role } from './role.entity';
  */
 @Entity()
 export class User extends BaseEntity {
-
   // 昵称
   @Column()
-  nickname: string;
+  nickname!: string;
 
   /**
    * 启用状态，字符串0或者1，默认值为1。
    */
-  @Column({ default: "1" })
-  status: string;
-
+  @Column({ default: '1' })
+  status!: string;
 
   /**
    * 头像。
@@ -31,13 +29,13 @@ export class User extends BaseEntity {
    * 用户名。
    */
   @Column()
-  username: string;
+  username!: string;
 
   /**
    * 用户密码。
    */
   @Column()
-  password: string;
+  password!: string;
 
   /**
    * 当用户被插入数据库之前，对密码进行加密。
@@ -57,9 +55,9 @@ export class User extends BaseEntity {
    * 与角色实体的多对多关系。
    * 一个用户可以有多个角色。
    */
-  @ManyToMany(() => Role, role => role.users)
+  @ManyToMany(() => Role, (role) => role.users)
   @JoinTable()
-  roles: Role[];
+  roles!: Role[];
 
   /**
    * 用户的电话号码（可选）。
@@ -72,5 +70,4 @@ export class User extends BaseEntity {
    */
   @Column({ nullable: true })
   email?: string;
-
 }

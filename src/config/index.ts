@@ -10,4 +10,4 @@ const configs: { development: IConfig; production: IConfig } = {
 
 const env = process.env.NODE_ENV || 'development';
 
-export default () => ({ ...baseConfig, ...configs[env] });
+export default () => ({ ...baseConfig, ...configs[env as keyof typeof configs] });

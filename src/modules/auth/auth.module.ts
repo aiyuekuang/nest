@@ -13,8 +13,8 @@ import config from '../../config';
     CommonModule,
     PassportModule,
     JwtModule.register({
-      secret: config().jwt.secret,
-      signOptions: { expiresIn: config().jwt.expiresIn },
+      secret: config().jwt?.secret || 'default_secret',
+      signOptions: { expiresIn: '24h' },
     }),
   ],
   controllers: [AuthController],
